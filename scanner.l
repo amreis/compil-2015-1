@@ -5,6 +5,9 @@
 #include "parser.h" //arquivo automaticamente gerado pelo bison
 unsigned long int line_num = 1;
 %}
+
+DIGIT [0-9]
+
 %%
 [ \t]+ 	{ }
 \n		{ line_num++; }
@@ -28,7 +31,7 @@ const	return TK_PR_CONST;
 "=="	return TK_OC_EQ;
 "!="	return TK_OC_NE;
 "&&"	return TK_OC_AND;
-"||"		return TK_OC_OR;
+"||"	return TK_OC_OR;
+","|";"|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"<"|">"|"="|"!"|"&"|"$"	{ return yytext[0]; }
 [a-zA-Z]+	return TK_IDENTIFICADOR;
-*/
 %%
