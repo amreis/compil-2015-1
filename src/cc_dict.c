@@ -20,5 +20,9 @@ struct comp_dict_item_t* query_trie(trie_dict_item* t, char* s)
 			t->children[s[cur_char]] = new_trie_dict_item();
 		t = t->children[s[cur_char]];
 	}
+	
+	if(t->val == NULL)
+		t->val = (struct comp_dict_item_t*)malloc(sizeof(struct comp_dict_item_t));
+	
 	return t->val;
 }

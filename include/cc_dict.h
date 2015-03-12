@@ -1,7 +1,7 @@
 struct comp_dict_item_t
 {
 	int last_line;
-}
+};
 
 #define TRIE_CHILDREN_SZ 256
 typedef struct trie_dict_item_t {
