@@ -6,9 +6,9 @@
 unsigned long int line_num = 1;
 %}
 
-INTEGER [0-9]+
-ALFABET [a-zA-Z]
-ALFANUM {ALFABET}|[:digit:]
+INTEGER [[:digit:]]+
+ALFABET [[:alpha:]_]
+ALFANUM {ALFABET}|[[:digit:]]
 
 %x MULTILINE_COMMENT
 %%
@@ -41,6 +41,6 @@ false	return TK_LIT_FALSE;
 '.'		return TK_LIT_CHAR;
 \".*\" 	return TK_LIT_STRING;
 {INTEGER} return TK_LIT_INT;
-{INTEGER}(\.[0-9]*) return TK_LIT_FLOAT;
+{INTEGER}(\.[[:digit:]]*) return TK_LIT_FLOAT;
 {ALFABET}{ALFANUM}* { return TK_IDENTIFICADOR; }
 %%
