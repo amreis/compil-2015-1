@@ -4,10 +4,13 @@
 %{
 #include "parser.h" //arquivo automaticamente gerado pelo bison
 unsigned long int line_num = 1;
+trie_dict_item* t;
 %}
 
 DIGIT [0-9]
-
+INTEGER {DIGIT}+
+ALFABET [a-zA-Z_]
+ALFANUM {ALFABET}|{DIGIT}
 %%
 [ \t]+ 	{ }
 \n		{ line_num++; }
@@ -33,5 +36,12 @@ const	return TK_PR_CONST;
 "&&"	return TK_OC_AND;
 "||"	return TK_OC_OR;
 ","|";"|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"<"|">"|"="|"!"|"&"|"$"	{ return yytext[0]; }
-[a-zA-Z]+	return TK_IDENTIFICADOR;
+true	return TK_LIT_TRUE;
+false	return TK_LIT_FALSE;
+'.'		return TK_LIT_CHAR;
+\".*\" 	return TK_LIT_STRING;
+{INTEGER} return TK_LIT_INT;
+{INTEGER}(\.{DIGIT}*) return TK_LIT_FLOAT;
+{ALFABET}{ALFANUM}* { return TK_IDENTIFICADOR; }
+
 %%
