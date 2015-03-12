@@ -1,9 +1,9 @@
 #include "cc_misc.h"
-
+extern unsigned long int line_num;
 int getLineNumber (void)
 {
   //implemente esta função
-  return -1;
+  return line_num;
 }
 
 void yyerror (char const *mensagem)
