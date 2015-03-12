@@ -23,12 +23,12 @@ output	return TK_PR_OUTPUT;
 return	return TK_PR_RETURN;
 static	return TK_PR_STATIC;
 const	return TK_PR_CONST;
-<=		return TK_OC_LE;
->=		return TK_OC_GE;
-==		return TK_OC_EQ;
-!=		return TK_OC_NE;
-&&		return TK_OC_AND;
-||		return TK_OC_OR;
+"<="	return TK_OC_LE;
+">="	return TK_OC_GE;
+"=="	return TK_OC_EQ;
+"!="	return TK_OC_NE;
+"&&"	return TK_OC_AND;
+"||"		return TK_OC_OR;
 [a-zA-Z]+	return TK_IDENTIFICADOR;
-
+*/
 %%
