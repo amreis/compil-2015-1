@@ -10,5 +10,4 @@ typedef struct trie_dict_item_t {
 } trie_dict_item;
 
 trie_dict_item* new_trie_dict_item();
-void insert_trie(trie_dict_item* t, char* s, struct comp_dict_item_t* c); // e modifica
 struct comp_dict_item_t* query_trie(trie_dict_item* t, char* s);
