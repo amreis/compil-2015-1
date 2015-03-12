@@ -6,8 +6,11 @@
 unsigned long int line_num = 1;
 %}
 
-DIGIT [0-9]
+INTEGER [0-9]+
+ALFABET [a-zA-Z]
+ALFANUM {ALFABET}|[:digit:]
 
+%x MULTILINE_COMMENT
 %%
 [ \t]+ 	{ }
 \n		{ line_num++; }
@@ -33,5 +36,11 @@ const	return TK_PR_CONST;
 "&&"	return TK_OC_AND;
 "||"	return TK_OC_OR;
 ","|";"|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"<"|">"|"="|"!"|"&"|"$"	{ return yytext[0]; }
-[a-zA-Z]+	return TK_IDENTIFICADOR;
+true	return TK_LIT_TRUE;
+false	return TK_LIT_FALSE;
+'.'		return TK_LIT_CHAR;
+\".*\" 	return TK_LIT_STRING;
+{INTEGER} return TK_LIT_INT;
+{INTEGER}(\.[0-9]*) return TK_LIT_FLOAT;
+{ALFABET}{ALFANUM}* { return TK_IDENTIFICADOR; }
 %%
