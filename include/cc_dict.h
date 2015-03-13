@@ -7,12 +7,12 @@ struct comp_dict_item_t
 };
 
 #define TRIE_CHILDREN_SZ 256
-typedef struct trie_dict_item_t {
+struct comp_dict_t {
 	struct comp_dict_item_t* val; //NULL se não for folha
-	struct trie_dict_item_t* children[TRIE_CHILDREN_SZ];
-} trie_dict_item;
+	struct comp_dict_t* children[TRIE_CHILDREN_SZ];
+};
 
-trie_dict_item* new_trie_dict_item();
-struct comp_dict_item_t* query_trie(trie_dict_item* t, char* s);
+comp_dict_t* new_dict();
+struct comp_dict_item_t* query_dict(comp_dict_t* t, char* s);
 
 #endif
