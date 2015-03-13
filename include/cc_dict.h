@@ -9,7 +9,7 @@ struct comp_dict_item_t
 #define TRIE_CHILDREN_SZ 256
 typedef struct trie_dict_item_t {
 	struct comp_dict_item_t* val; //NULL se não for folha
-	struct trie_dict_item_t* children[256];
+	struct trie_dict_item_t* children[TRIE_CHILDREN_SZ];
 } trie_dict_item;
 
 trie_dict_item* new_trie_dict_item();
