@@ -11,6 +11,15 @@ struct comp_dict_t* new_dict()
 	return resp;
 }
 
+void free_dict(struct comp_dict_t* t)
+{
+	int i;
+	for(i=0;i<TRIE_CHILDREN_SZ;++i)
+		if(t->children[i] != NULL)
+			free_dict(t->children[i]);
+	free(t);
+}
+
 struct comp_dict_item_t* query_dict(struct comp_dict_t* t, const char* s)
 {
 	int cur_char;
