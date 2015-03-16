@@ -40,6 +40,7 @@ true	return TK_LIT_TRUE;
 false	return TK_LIT_FALSE;
 '.'		return TK_LIT_CHAR;
 \".*\" 	return TK_LIT_STRING;
+\/\/.*\n	{ line_num++; }
 {INTEGER} return TK_LIT_INT;
 {INTEGER}(\.[[:digit:]]*) return TK_LIT_FLOAT;
 {ALFABET}{ALFANUM}* { return TK_IDENTIFICADOR; }
