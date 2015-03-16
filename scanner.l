@@ -3,7 +3,10 @@
 */
 %{
 #include "parser.h" //arquivo automaticamente gerado pelo bison
+#include "cc_dict.h"
+
 unsigned long int line_num = 1;
+struct comp_dict_t* sym_table;
 %}
 
 INTEGER [[:digit:]]+
@@ -36,7 +39,7 @@ const	return TK_PR_CONST;
 "&&"	return TK_OC_AND;
 "||"	return TK_OC_OR;
 ","|";"|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"<"|">"|"="|"!"|"&"|"$"	{ return yytext[0]; }
-true	return TK_LIT_TRUE;
+true	{ insert_in_dict(sym_table, "true", create_dict_item(line_num)); return TK_LIT_TRUE; }
 false	return TK_LIT_FALSE;
 '.'		return TK_LIT_CHAR;
 \".*\" 	return TK_LIT_STRING;

@@ -1,5 +1,7 @@
 #include "cc_misc.h"
+#include "cc_dict.h"
 extern unsigned long int line_num;
+extern struct comp_dict_t* sym_table;
 int getLineNumber (void)
 {
   //implemente esta função
@@ -13,10 +15,11 @@ void yyerror (char const *mensagem)
 
 void main_init (int argc, char **argv)
 {
-  //implemente esta função com rotinas de inicialização, se necessário
+	sym_table = new_dict();
 }
 
 void main_finalize (void)
 {
   //implemente esta função com rotinas de inicialização, se necessário
+  // TODO free stuff
 }
