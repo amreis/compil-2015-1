@@ -50,11 +50,10 @@ false	{ insert_in_dict(sym_table, "false", create_dict_item(line_num)); return T
 				return TK_LIT_CHAR;
 			}
 
-\".*\" 		{
+\"[^\"]*\" 		{
 				char str[yyleng];
 				strcpy(str, yytext+1);
 				str[yyleng-2] = '\0';
-				printf("string: %s\n", str);
 				insert_in_dict(sym_table, str, create_dict_item(line_num));
 				return TK_LIT_STRING;
 			}
@@ -74,4 +73,11 @@ false	{ insert_in_dict(sym_table, "false", create_dict_item(line_num)); return T
 			}
 
 \/\/.*\n	{ line_num++; }
+
+\/\*		{ BEGIN(MULTILINE_COMMENT); }
+<MULTILINE_COMMENT>[^\*\/\n]*\n { line_num++; }
+<MULTILINE_COMMENT>[^\*\/\n] { }
+<MULTILINE_COMMENT>(\*|\/) { }
+<MULTILINE_COMMENT>\*\/	{ BEGIN(INITIAL); }
+. { return TOKEN_ERRO; }
 %%

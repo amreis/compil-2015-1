@@ -17,6 +17,7 @@ void free_dict(struct comp_dict_t* t)
 	for(i=0;i<TRIE_CHILDREN_SZ;++i)
 		if(t->children[i] != NULL)
 			free_dict(t->children[i]);
+	free(t->val);
 	free(t);
 }
 
@@ -39,7 +40,6 @@ struct comp_dict_item_t* query_dict(struct comp_dict_t* t, const char* s)
 void insert_in_dict(struct comp_dict_t* t, const char* s, struct comp_dict_item_t item)
 {
 	*query_dict(t, s) = item;
-	printf("Inserted key: %s, value: %d in symtab.\n", s, item.last_line);
 }
 
 struct comp_dict_item_t create_dict_item(int last_line)
