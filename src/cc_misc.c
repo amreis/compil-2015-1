@@ -22,4 +22,5 @@ void main_finalize (void)
 {
   //implemente esta função com rotinas de inicialização, se necessário
   // TODO free stuff
+	free_dict(sym_table);
 }
