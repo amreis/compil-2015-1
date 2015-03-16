@@ -11,7 +11,7 @@ struct comp_dict_t* new_dict()
 	return resp;
 }
 
-struct comp_dict_item_t* query_dict(struct comp_dict_t* t, char* s)
+struct comp_dict_item_t* query_dict(struct comp_dict_t* t, const char* s)
 {
 	int cur_char;
 	for(cur_char=0; s[cur_char]; ++cur_char)
@@ -27,7 +27,7 @@ struct comp_dict_item_t* query_dict(struct comp_dict_t* t, char* s)
 	return t->val;
 }
 
-void insert_in_dict(struct comp_dict_t* t, char* s, struct comp_dict_item_t item)
+void insert_in_dict(struct comp_dict_t* t, const char* s, struct comp_dict_item_t item)
 {
 	*query_dict(t, s) = item;
 	printf("Inserted key: %s, value: %d in symtab.\n", s, item.last_line);

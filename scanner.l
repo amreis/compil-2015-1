@@ -40,11 +40,24 @@ const	return TK_PR_CONST;
 "||"	return TK_OC_OR;
 ","|";"|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"<"|">"|"="|"!"|"&"|"$"	{ return yytext[0]; }
 true	{ insert_in_dict(sym_table, "true", create_dict_item(line_num)); return TK_LIT_TRUE; }
-false	return TK_LIT_FALSE;
-'.'		return TK_LIT_CHAR;
-\".*\" 	return TK_LIT_STRING;
-\/\/.*\n	{ line_num++; }
-{INTEGER} return TK_LIT_INT;
+false	{ insert_in_dict(sym_table, "false", create_dict_item(line_num)); return TK_LIT_FALSE; }
+'.'		{
+			char str[2] = ".";
+			str[0] = yytext[1];
+			insert_in_dict(sym_table, str, create_dict_item(line_num));
+			return TK_LIT_CHAR;
+		}
+\".*\" 	{
+			char str[yyleng];
+			strcpy(str, yytext+1);
+			str[yyleng-2] = '\0';
+			printf("string: %s\n", str);
+			insert_in_dict(sym_table, str, create_dict_item(line_num));
+			return TK_LIT_STRING;
+		}
+{INTEGER} {	return TK_LIT_INT; }
 {INTEGER}(\.[[:digit:]]*) return TK_LIT_FLOAT;
 {ALFABET}{ALFANUM}* { return TK_IDENTIFICADOR; }
+
+\/\/.*\n	{ line_num++; }
 %%
