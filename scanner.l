@@ -1,5 +1,9 @@
 /*
-  Coloque aqui o identificador do grupo e dos seus membros
+  Galatasaralister
+  
+  Alister Machado dos Reis
+  Daniel dos Santos Bossle
+  Eduardo Faccin Vernier
 */
 %{
 #include "parser.h" //arquivo automaticamente gerado pelo bison
