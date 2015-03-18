@@ -1,6 +1,6 @@
 /*
   Galatasaralister
-  
+
   Alister Machado dos Reis
   Daniel dos Santos Bossle
   Eduardo Faccin Vernier
