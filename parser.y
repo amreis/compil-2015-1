@@ -39,6 +39,17 @@
 %%
 /* Regras (e ações) da gramática */
 
-programa:
-
+programa  : programa global_var_decl ';'
+          |
+          ;
+global_var_decl : static_var_decl
+                | normal_var_decl
+                | vector_var_decl
+                ;
+static_var_decl : TK_PR_STATIC normal_var_decl
+                | TK_PR_STATIC vector_var_decl
+                ;
+vector_var_decl : normal_var_decl '[' TK_LIT_INT ']' ;
+normal_var_decl : type TK_IDENTIFICADOR ;
+type  : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING ;
 %%
