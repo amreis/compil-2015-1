@@ -1,9 +1,17 @@
 /*
-  Coloque aqui o identificador do grupo e dos seus membros
+  Galatasaralister
+
+  Alister Machado dos Reis
+  Daniel dos Santos Bossle
+  Eduardo Faccin Vernier
 */
 %{
 #include <stdio.h>
 %}
+
+%union {
+	struct comp_dict_item_t* valor_simbolo_lexico;
+}
 
 /* Declaração dos tokens da linguagem */
 %token TK_PR_INT
