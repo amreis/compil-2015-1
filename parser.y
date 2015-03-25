@@ -48,6 +48,7 @@
 /* Regras (e ações) da gramática */
 
 programa  : programa global_var_decl ';'
+          | programa gen_func_decl
           |
           ;
 global_var_decl : static_var_decl
@@ -59,5 +60,20 @@ static_var_decl : TK_PR_STATIC normal_var_decl
                 ;
 vector_var_decl : normal_var_decl '[' TK_LIT_INT ']' ;
 normal_var_decl : type TK_IDENTIFICADOR ;
+
+gen_func_decl   : static_func_decl
+                | normal_func_decl ;
+
+static_func_decl: TK_PR_STATIC normal_func_decl ;
+
+normal_func_decl: type TK_IDENTIFICADOR '(' args_list ')' '{' command_block '}' ;
+
+args_list       : nonempty_args_list
+                | ;
+nonempty_args_list: param | nonempty_args_list ',' param ;
+
+param           : TK_PR_CONST normal_var_decl | normal_var_decl ;
+
+command_block: ;
 type  : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING ;
 %%
