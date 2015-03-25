@@ -70,12 +70,14 @@ false		{
 			}
 
 \"[^\"]*\" 		{
-				char* str = (char*)malloc(yyleng);
+				char str[yyleng];
 				strcpy(str, yytext+1); str[yyleng-2] = '\0';
 				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_LITERAL_STRING], str);
+				if(item->token_type == SIMBOLO_INVALIDO)
+					item->token_val.string_val = (char*)malloc(yyleng);
 				item->last_line = line_num;
 				item->token_type = SIMBOLO_LITERAL_STRING;
-				item->token_val.string_val = str;
+				strcpy(item->token_val.string_val, str);
 				return TK_LIT_STRING;
 			}
 
@@ -96,9 +98,11 @@ false		{
 			}
 {ALFABET}{ALFANUM}* {
 				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_IDENTIFICADOR], yytext);
+				if(item->token_type == SIMBOLO_INVALIDO)
+					item->token_val.identificador_val = (char*)malloc(yyleng+1);
 				item->last_line = line_num;
 				item->token_type = SIMBOLO_IDENTIFICADOR;
-				item->token_val.identificador_val = (char*)malloc(yyleng+1);
+				strcpy(item->token_val.identificador_val, yytext);
 				return TK_IDENTIFICADOR;
 			}
 

@@ -8,6 +8,7 @@
 #define SIMBOLO_LITERAL_BOOL  	5
 #define SIMBOLO_IDENTIFICADOR 	6
 
+#define SIMBOLO_INVALIDO   	0
 #define NUMBER_SYMBOL_TYPES 6
 
 struct comp_dict_item_t
@@ -31,7 +32,9 @@ struct comp_dict_t {
 };
 
 struct comp_dict_t* new_dict();
+void free_dict(struct comp_dict_t* t);
 struct comp_dict_item_t* query_dict(struct comp_dict_t* t, const char* s);
 void insert_in_dict(struct comp_dict_t* t, const char* s, struct comp_dict_item_t item);
 struct comp_dict_item_t create_dict_item(int last_line, int token_type);
+void free_dict_item(struct comp_dict_item_t* item);
 #endif

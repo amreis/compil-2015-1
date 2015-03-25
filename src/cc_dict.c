@@ -30,7 +30,7 @@ void free_dict(struct comp_dict_t* t)
 	for(i=0;i<TRIE_CHILDREN_SZ;++i)
 		if(t->children[i] != NULL)
 			free_dict(t->children[i]);
-	free(t->val);
+	free_dict_item(t->val);
 	free(t);
 }
 
@@ -50,7 +50,10 @@ struct comp_dict_item_t* query_dict(struct comp_dict_t* t, const char* s)
 	}
 
 	if(t->val == NULL)
+	{
 		t->val = (struct comp_dict_item_t*)malloc(sizeof(struct comp_dict_item_t));
+		t->val->token_type = SIMBOLO_INVALIDO;
+	}
 
 	return t->val;
 }
@@ -73,4 +76,14 @@ struct comp_dict_item_t create_dict_item(int last_line, int token_type)
 	item.last_line = last_line;
 	item.token_type = token_type;
 	return item;
+}
+
+void free_dict_item(struct comp_dict_item_t* item)
+{
+	if(item == NULL) return;
+	if(item->token_type == SIMBOLO_LITERAL_STRING)
+		free(item->token_val.string_val);
+	if(item->token_type == SIMBOLO_IDENTIFICADOR)
+		free(item->token_val.identificador_val);
+	free(item);
 }
