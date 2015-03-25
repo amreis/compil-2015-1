@@ -44,13 +44,13 @@ const	return TK_PR_CONST;
 "||"	return TK_OC_OR;
 ","|";"|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"<"|">"|"="|"!"|"&"|"$"	{ return yytext[0]; }
 
-true	{ insert_in_dict(sym_table[SIMBOLO_LITERAL_BOOL], "true", create_dict_item(line_num)); return TK_LIT_TRUE; }
-false	{ insert_in_dict(sym_table[SIMBOLO_LITERAL_BOOL], "false", create_dict_item(line_num)); return TK_LIT_FALSE; }
+true	{ insert_in_dict(sym_table[SIMBOLO_LITERAL_BOOL], "true", create_dict_item(line_num, SIMBOLO_LITERAL_BOOL)); return TK_LIT_TRUE; }
+false	{ insert_in_dict(sym_table[SIMBOLO_LITERAL_BOOL], "false", create_dict_item(line_num, SIMBOLO_LITERAL_BOOL)); return TK_LIT_FALSE; }
 
 '.'			{
 				char str[2] = ".";
 				str[0] = yytext[1];
-				insert_in_dict(sym_table[SIMBOLO_LITERAL_CHAR], str, create_dict_item(line_num));
+				insert_in_dict(sym_table[SIMBOLO_LITERAL_CHAR], str, create_dict_item(line_num, SIMBOLO_LITERAL_CHAR));
 				return TK_LIT_CHAR;
 			}
 
@@ -58,21 +58,21 @@ false	{ insert_in_dict(sym_table[SIMBOLO_LITERAL_BOOL], "false", create_dict_ite
 				char str[yyleng];
 				strcpy(str, yytext+1);
 				str[yyleng-2] = '\0';
-				insert_in_dict(sym_table[SIMBOLO_LITERAL_STRING], str, create_dict_item(line_num));
+				insert_in_dict(sym_table[SIMBOLO_LITERAL_STRING], str, create_dict_item(line_num, SIMBOLO_LITERAL_STRING));
 				return TK_LIT_STRING;
 			}
 
 {INTEGER} 	{
-				insert_in_dict(sym_table[SIMBOLO_LITERAL_INT], yytext, create_dict_item(line_num));
+				insert_in_dict(sym_table[SIMBOLO_LITERAL_INT], yytext, create_dict_item(line_num, SIMBOLO_LITERAL_INT));
 				return TK_LIT_INT;
 			}
 
 {INTEGER}(\.[[:digit:]]*) {
-				insert_in_dict(sym_table[SIMBOLO_LITERAL_FLOAT], yytext, create_dict_item(line_num));
+				insert_in_dict(sym_table[SIMBOLO_LITERAL_FLOAT], yytext, create_dict_item(line_num, SIMBOLO_LITERAL_FLOAT));
 				return TK_LIT_FLOAT;
 			}
 {ALFABET}{ALFANUM}* {
-				insert_in_dict(sym_table[SIMBOLO_IDENTIFICADOR], yytext, create_dict_item(line_num));
+				insert_in_dict(sym_table[SIMBOLO_IDENTIFICADOR], yytext, create_dict_item(line_num, SIMBOLO_IDENTIFICADOR));
 				return TK_IDENTIFICADOR;
 			}
 

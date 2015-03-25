@@ -67,9 +67,10 @@ void insert_in_dict(struct comp_dict_t* t, const char* s, struct comp_dict_item_
 /**
  * Function to abstract the creation of a dictionary value type, in case it gets more complex.
  */
-struct comp_dict_item_t create_dict_item(int last_line)
+struct comp_dict_item_t create_dict_item(int last_line, int token_type)
 {
 	struct comp_dict_item_t item;
 	item.last_line = last_line;
+	item.token_type = token_type;
 	return item;
 }
