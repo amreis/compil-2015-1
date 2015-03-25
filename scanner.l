@@ -44,35 +44,61 @@ const	return TK_PR_CONST;
 "||"	return TK_OC_OR;
 ","|";"|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"<"|">"|"="|"!"|"&"|"$"	{ return yytext[0]; }
 
-true	{ insert_in_dict(sym_table[SIMBOLO_LITERAL_BOOL], "true", create_dict_item(line_num, SIMBOLO_LITERAL_BOOL)); return TK_LIT_TRUE; }
-false	{ insert_in_dict(sym_table[SIMBOLO_LITERAL_BOOL], "false", create_dict_item(line_num, SIMBOLO_LITERAL_BOOL)); return TK_LIT_FALSE; }
+true		{
+				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_LITERAL_BOOL], "true");
+				item->last_line = line_num;
+				item->token_type = SIMBOLO_LITERAL_BOOL;
+				item->token_val.bool_val = 1;
+				return TK_LIT_TRUE;
+			}
+
+false		{
+				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_LITERAL_BOOL], "false");
+				item->last_line = line_num;
+				item->token_type = SIMBOLO_LITERAL_BOOL;
+				item->token_val.bool_val = 0;
+				return TK_LIT_FALSE;
+			}
 
 '.'			{
-				char str[2] = ".";
-				str[0] = yytext[1];
-				insert_in_dict(sym_table[SIMBOLO_LITERAL_CHAR], str, create_dict_item(line_num, SIMBOLO_LITERAL_CHAR));
+				char str[2] = "."; str[0] = yytext[1];
+				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_LITERAL_CHAR], str);
+				item->last_line = line_num;
+				item->token_type = SIMBOLO_LITERAL_CHAR;
+				item->token_val.char_val = yytext[1];
 				return TK_LIT_CHAR;
 			}
 
 \"[^\"]*\" 		{
-				char str[yyleng];
-				strcpy(str, yytext+1);
-				str[yyleng-2] = '\0';
-				insert_in_dict(sym_table[SIMBOLO_LITERAL_STRING], str, create_dict_item(line_num, SIMBOLO_LITERAL_STRING));
+				char* str = (char*)malloc(yyleng);
+				strcpy(str, yytext+1); str[yyleng-2] = '\0';
+				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_LITERAL_STRING], str);
+				item->last_line = line_num;
+				item->token_type = SIMBOLO_LITERAL_STRING;
+				item->token_val.string_val = str;
 				return TK_LIT_STRING;
 			}
 
 {INTEGER} 	{
-				insert_in_dict(sym_table[SIMBOLO_LITERAL_INT], yytext, create_dict_item(line_num, SIMBOLO_LITERAL_INT));
+				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_LITERAL_INT], yytext);
+				item->last_line = line_num;
+				item->token_type = SIMBOLO_LITERAL_INT;
+				item->token_val.int_val = atoi(yytext);
 				return TK_LIT_INT;
 			}
 
 {INTEGER}(\.[[:digit:]]*) {
-				insert_in_dict(sym_table[SIMBOLO_LITERAL_FLOAT], yytext, create_dict_item(line_num, SIMBOLO_LITERAL_FLOAT));
+				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_LITERAL_FLOAT], yytext);
+				item->last_line = line_num;
+				item->token_type = SIMBOLO_LITERAL_FLOAT;
+				item->token_val.float_val = atof(yytext);
 				return TK_LIT_FLOAT;
 			}
 {ALFABET}{ALFANUM}* {
-				insert_in_dict(sym_table[SIMBOLO_IDENTIFICADOR], yytext, create_dict_item(line_num, SIMBOLO_IDENTIFICADOR));
+				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_IDENTIFICADOR], yytext);
+				item->last_line = line_num;
+				item->token_type = SIMBOLO_IDENTIFICADOR;
+				item->token_val.identificador_val = (char*)malloc(yyleng+1);
 				return TK_IDENTIFICADOR;
 			}
 
