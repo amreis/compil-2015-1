@@ -47,9 +47,9 @@
 %%
 /* Regras (e ações) da gramática */
 
-programa  : programa global_var_decl ';'
-          |
-          ;
+program  		: program global_var_decl ';'
+		      	|
+		      	;
 global_var_decl : static_var_decl
                 | normal_var_decl
                 | vector_var_decl
@@ -60,4 +60,29 @@ static_var_decl : TK_PR_STATIC normal_var_decl
 vector_var_decl : normal_var_decl '[' TK_LIT_INT ']' ;
 normal_var_decl : type TK_IDENTIFICADOR ;
 type  : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING ;
+literal			: TK_LIT_FALSE 
+				| TK_LIT_TRUE
+				| TK_LIT_CHAR
+				| TK_LIT_STRING
+				| TK_LIT_INT
+				| TK_LIT_FLOAT
+				;
+local_var_decl	: gen_local_var ';'
+				| gen_local_var '<''=' TK_IDENTIFICADOR ';'
+				| gen_local_var '<''=' literal ';'
+				;
+gen_local_var	: simple_local_var | static_local_var ;
+simple_local_var: type TK_IDENTIFICADOR 
+				| TK_PR_CONST type TK_IDENTIFICADOR 				
+				;
+static_local_var: TK_PR_STATIC simple_local_var 
+				;
+assignment		: TK_IDENTIFICADOR '=' expression 
+				| TK_IDENTIFICADOR'[' expression ']' '=' expression 
+				;
+expression	: ; 
+
+
+
+
 %%
