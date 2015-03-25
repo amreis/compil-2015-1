@@ -8,6 +8,8 @@
 #define SIMBOLO_LITERAL_BOOL  	5
 #define SIMBOLO_IDENTIFICADOR 	6
 
+#define NUMBER_SYMBOL_TYPES 6
+
 struct comp_dict_item_t
 {
 	int last_line;

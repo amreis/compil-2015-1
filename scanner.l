@@ -10,7 +10,7 @@
 #include "cc_dict.h"
 
 unsigned long int line_num = 1;
-struct comp_dict_t* sym_table;
+struct comp_dict_t* sym_table[NUMBER_SYMBOL_TYPES+1];
 %}
 
 INTEGER [[:digit:]]+
@@ -44,13 +44,13 @@ const	return TK_PR_CONST;
 "||"	return TK_OC_OR;
 ","|";"|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"<"|">"|"="|"!"|"&"|"$"	{ return yytext[0]; }
 
-true	{ insert_in_dict(sym_table, "true", create_dict_item(line_num)); return TK_LIT_TRUE; }
-false	{ insert_in_dict(sym_table, "false", create_dict_item(line_num)); return TK_LIT_FALSE; }
+true	{ insert_in_dict(sym_table[SIMBOLO_LITERAL_BOOL], "true", create_dict_item(line_num)); return TK_LIT_TRUE; }
+false	{ insert_in_dict(sym_table[SIMBOLO_LITERAL_BOOL], "false", create_dict_item(line_num)); return TK_LIT_FALSE; }
 
 '.'			{
 				char str[2] = ".";
 				str[0] = yytext[1];
-				insert_in_dict(sym_table, str, create_dict_item(line_num));
+				insert_in_dict(sym_table[SIMBOLO_LITERAL_CHAR], str, create_dict_item(line_num));
 				return TK_LIT_CHAR;
 			}
 
@@ -58,21 +58,21 @@ false	{ insert_in_dict(sym_table, "false", create_dict_item(line_num)); return T
 				char str[yyleng];
 				strcpy(str, yytext+1);
 				str[yyleng-2] = '\0';
-				insert_in_dict(sym_table, str, create_dict_item(line_num));
+				insert_in_dict(sym_table[SIMBOLO_LITERAL_STRING], str, create_dict_item(line_num));
 				return TK_LIT_STRING;
 			}
 
 {INTEGER} 	{
-				insert_in_dict(sym_table, yytext, create_dict_item(line_num));
+				insert_in_dict(sym_table[SIMBOLO_LITERAL_INT], yytext, create_dict_item(line_num));
 				return TK_LIT_INT;
 			}
 
 {INTEGER}(\.[[:digit:]]*) {
-				insert_in_dict(sym_table, yytext, create_dict_item(line_num));
+				insert_in_dict(sym_table[SIMBOLO_LITERAL_FLOAT], yytext, create_dict_item(line_num));
 				return TK_LIT_FLOAT;
 			}
 {ALFABET}{ALFANUM}* {
-				insert_in_dict(sym_table, yytext, create_dict_item(line_num));
+				insert_in_dict(sym_table[SIMBOLO_IDENTIFICADOR], yytext, create_dict_item(line_num));
 				return TK_IDENTIFICADOR;
 			}
 
