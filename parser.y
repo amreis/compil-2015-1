@@ -78,16 +78,16 @@ gen_func_decl   : static_func_decl
 static_func_decl: TK_PR_STATIC simple_func_decl ;
 
 /* A function declaration needs a return type, an identifier and an (possibly
-   empty) argument list, followed by the function body surrounded by braces */
-simple_func_decl: type TK_IDENTIFICADOR '(' args_list ')' '{' command_block '}' ;
+   empty) parameter list, followed by the function body surrounded by braces */
+simple_func_decl: type TK_IDENTIFICADOR '(' params_list ')' '{' command_block '}' ;
 
 /* The argument list may be empty or not */
-args_list       : nonempty_args_list
+params_list     : nonempty_params_list
                 | ;
 
-/* A list of arguments that is not empty is either a single parameter or a parameter 
+/* A list of parameters that is not empty is either a single parameter or a parameter 
    preceded by another non-empty list of arguments and a comma */
-nonempty_args_list: param | nonempty_args_list ',' param ;
+nonempty_params_list: param | nonempty_params_list ',' param ;
 
 /* A parameter is like a variable declaration, but it might be const */
 param           : TK_PR_CONST simple_var_decl | simple_var_decl ;
@@ -130,18 +130,33 @@ simple_local_var: type TK_IDENTIFICADOR
 static_local_var: TK_PR_STATIC simple_local_var 
 				;
 assignment		: TK_IDENTIFICADOR '=' expression 
-				| TK_IDENTIFICADOR'[' expression ']' '=' expression 
+				| TK_IDENTIFICADOR '[' expression ']' '=' expression 
 				;
 expression		: expression_leaf
-				| expression '*' expression_leaf
-				| expression '+' expression_leaf ;
+				| expression binary_operator expression_leaf
+				| '(' expression ')'
+				| '-' expression
+				| '!' expression
+				;
+binary_operator	: TK_OC_LE
+				| TK_OC_GE
+				| TK_OC_EQ
+				| TK_OC_NE
+				| '<' | '>'
+				| '+' | '-' | '*' | '/'
+				| TK_OC_AND
+				| TK_OC_OR
+				| '&' /* missing '|' on definition */
+				;
 expression_leaf : TK_IDENTIFICADOR
 				| TK_IDENTIFICADOR '[' expression ']'
 				| literal 
 				| func_call
-				| '(' expression ')' ;
+				;
 func_call		: TK_IDENTIFICADOR '(' args_list ')' ;
-
+args_list		: nonempty_args_list
+				| ;
+nonempty_args_list: expression | nonempty_args_list ',' expression ;
 
 
 %%
