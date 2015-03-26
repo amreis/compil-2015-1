@@ -132,8 +132,15 @@ static_local_var: TK_PR_STATIC simple_local_var
 assignment		: TK_IDENTIFICADOR '=' expression 
 				| TK_IDENTIFICADOR'[' expression ']' '=' expression 
 				;
-expression	    : literal ;
-
+expression		: expression_leaf
+				| expression '*' expression_leaf
+				| expression '+' expression_leaf ;
+expression_leaf : TK_IDENTIFICADOR
+				| TK_IDENTIFICADOR '[' expression ']'
+				| literal 
+				| func_call
+				| '(' expression ')' ;
+func_call		: TK_IDENTIFICADOR '(' args_list ')' ;
 
 
 
