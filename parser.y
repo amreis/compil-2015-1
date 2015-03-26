@@ -75,7 +75,7 @@ gen_func_decl   : static_func_decl
                 | simple_func_decl ;
 
 /* If it's static, its declaration is preceded by the keyword 'static' */
-static_func_decl: TK_PR_STATIC normal_func_decl ;
+static_func_decl: TK_PR_STATIC simple_func_decl ;
 
 /* A function declaration needs a return type, an identifier and an (possibly
    empty) argument list, followed by the function body surrounded by braces */
@@ -90,17 +90,25 @@ args_list       : nonempty_args_list
 nonempty_args_list: param | nonempty_args_list ',' param ;
 
 /* A parameter is like a variable declaration, but it might be const */
-param           : TK_PR_CONST normal_var_decl | normal_var_decl ;
+param           : TK_PR_CONST simple_var_decl | simple_var_decl ;
 
-command_block: ;
+command_block   : /* empty */
+                | command_block command ';' ;
 
+command         : local_var_decl
+                | assignment
+                | do_while
+                | while
+                | /* empty */ ;
 /** CONTROLE DE FLUXO **/
 
 /** LOOPS */
 
-do_while        : TOKEN_PR_DO command TOKEN_PR_WHILE '(' expression ')' ;
+do_while        : TK_PR_DO command ';' TK_PR_WHILE '(' expression ')' 
+                | TK_PR_DO '{' command_block '}' TK_PR_WHILE '(' expression ')' ;
 
-while           : TOKEN_PR_WHILE '(' expression ')' TOKEN_PR_DO command ;
+while           : TK_PR_WHILE '(' expression ')' TK_PR_DO command ';'
+                | TK_PR_WHILE '(' expression ')' TK_PR_DO '{' command_block '}' ;
 
 type  : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING ;
 
@@ -111,9 +119,9 @@ literal			: TK_LIT_FALSE
 				| TK_LIT_INT
 				| TK_LIT_FLOAT
 				;
-local_var_decl	: gen_local_var ';'
-				| gen_local_var '<''=' TK_IDENTIFICADOR ';'
-				| gen_local_var '<''=' literal ';'
+local_var_decl	: gen_local_var
+				| gen_local_var TK_OC_LE TK_IDENTIFICADOR
+				| gen_local_var TK_OC_LE     literal
 				;
 gen_local_var	: simple_local_var | static_local_var ;
 simple_local_var: type TK_IDENTIFICADOR 
@@ -124,7 +132,7 @@ static_local_var: TK_PR_STATIC simple_local_var
 assignment		: TK_IDENTIFICADOR '=' expression 
 				| TK_IDENTIFICADOR'[' expression ']' '=' expression 
 				;
-expression	: ; 
+expression	    : literal ;
 
 
 
