@@ -35,13 +35,13 @@
 %token TK_OC_NE
 %token TK_OC_AND
 %token TK_OC_OR
-%token TK_LIT_INT
-%token TK_LIT_FLOAT
-%token TK_LIT_FALSE
-%token TK_LIT_TRUE
-%token TK_LIT_CHAR
-%token TK_LIT_STRING
-%token TK_IDENTIFICADOR
+%token <valor_simbolo_lexico> TK_LIT_INT
+%token <valor_simbolo_lexico> TK_LIT_FLOAT
+%token <valor_simbolo_lexico> TK_LIT_FALSE
+%token <valor_simbolo_lexico> TK_LIT_TRUE
+%token <valor_simbolo_lexico> TK_LIT_CHAR
+%token <valor_simbolo_lexico> TK_LIT_STRING
+%token <valor_simbolo_lexico> TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
 %%
