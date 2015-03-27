@@ -157,6 +157,6 @@ func_call		: TK_IDENTIFICADOR '(' args_list ')' ;
 args_list		: nonempty_args_list
 				| ;
 nonempty_args_list: expression | nonempty_args_list ',' expression ;
-
+return_statement: TK_PR_RETURN expression ;
 
 %%
