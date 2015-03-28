@@ -92,34 +92,20 @@ nonempty_params_list: param | nonempty_params_list ',' param ;
 /* A parameter is like a variable declaration, but it might be const */
 param           : TK_PR_CONST simple_var_decl | simple_var_decl ;
 
-command_block   : /* empty */
-                | command_block command ';' ;
+command_block   : command
+                | command_block ';' command ;
 
 command         : local_var_decl
                 | assignment
-                | do_while
-                | while
+                | input_statement
+                | output_statement
                 | return_statement
-                | /* empty */ ;
-/** CONTROLE DE FLUXO **/
+                | flow_control
+                | /* empty statement */ 
+                | func_call
+                ;
 
-/** LOOPS */
-
-do_while        : TK_PR_DO command ';' TK_PR_WHILE '(' expression ')' 
-                | TK_PR_DO '{' command_block '}' TK_PR_WHILE '(' expression ')' ;
-
-while           : TK_PR_WHILE '(' expression ')' TK_PR_DO command ';'
-                | TK_PR_WHILE '(' expression ')' TK_PR_DO '{' command_block '}' ;
-
-type  : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING ;
-
-literal			: TK_LIT_FALSE 
-				| TK_LIT_TRUE
-				| TK_LIT_CHAR
-				| TK_LIT_STRING
-				| TK_LIT_INT
-				| TK_LIT_FLOAT
-				;
+// DECLARAÇÃO DE VARIÁVEL LOCAL
 local_var_decl	: gen_local_var
 				| gen_local_var TK_OC_LE TK_IDENTIFICADOR
 				| gen_local_var TK_OC_LE     literal
@@ -130,16 +116,64 @@ simple_local_var: type TK_IDENTIFICADOR
 				;
 static_local_var: TK_PR_STATIC simple_local_var 
 				;
+// ATRIBUIÇÃO
 assignment		: TK_IDENTIFICADOR '=' expression 
 				| TK_IDENTIFICADOR '[' expression ']' '=' expression 
 				;
+
+// ENTRADA
+input_statement	: TK_PR_INPUT expression '=' '>' expression ; /* bug: you can have whitespace between '=' and '>' */
+
+// SAÍDA
+output_statement : TK_PR_OUTPUT comma_expr_list ;
+comma_expr_list	: expression | comma_expr_list ',' expression ;
+
+// RETORNO
+return_statement: TK_PR_RETURN expression ;
+
+// CHAMADA DE FUNÇÃO
+func_call		: TK_IDENTIFICADOR '(' args_list ')' ;
+args_list		: nonempty_args_list | /* empty */;
+nonempty_args_list: expression | nonempty_args_list ',' expression ;
+
+
+/** EXPRESSÕES LÓGICAS E ARITMÉTICAS **/
 expression		: simple_expression
 				| expression binary_operator simple_expression ;
 simple_expression : unary_operator simple_expression
 				| expression_leaf
 				| '(' expression ')'
 				;
+expression_leaf : TK_IDENTIFICADOR
+				| TK_IDENTIFICADOR '[' expression ']'
+				| literal 
+				| func_call
+				;
+
+/** CONTROLE DE FLUXO **/
+
+flow_control	: do_while | while ;
+
+do_while        : TK_PR_DO command ';' TK_PR_WHILE '(' expression ')' 
+                | TK_PR_DO '{' command_block '}' TK_PR_WHILE '(' expression ')' ;
+
+while           : TK_PR_WHILE '(' expression ')' TK_PR_DO command ';'
+                | TK_PR_WHILE '(' expression ')' TK_PR_DO '{' command_block '}' ;
+
+
+/** TIPOS AUXILIARES **/
+
+type  : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING ;
+
+literal			: TK_LIT_FALSE 
+				| TK_LIT_TRUE
+				| TK_LIT_CHAR
+				| TK_LIT_STRING
+				| TK_LIT_INT
+				| TK_LIT_FLOAT
+				;
 unary_operator	: '-' | '!' ;
+
 binary_operator	: TK_OC_LE
 				| TK_OC_GE
 				| TK_OC_EQ
@@ -150,15 +184,6 @@ binary_operator	: TK_OC_LE
 				| TK_OC_OR
 				| '&' /* missing '|' on definition */
 				;
-expression_leaf : TK_IDENTIFICADOR
-				| TK_IDENTIFICADOR '[' expression ']'
-				| literal 
-				| func_call
-				;
-func_call		: TK_IDENTIFICADOR '(' args_list ')' ;
-args_list		: nonempty_args_list
-				| ;
-nonempty_args_list: expression | nonempty_args_list ',' expression ;
-return_statement: TK_PR_RETURN expression ;
+
 
 %%
