@@ -99,6 +99,7 @@ command         : local_var_decl
                 | assignment
                 | do_while
                 | while
+                | return_statement
                 | /* empty */ ;
 /** CONTROLE DE FLUXO **/
 
@@ -132,12 +133,13 @@ static_local_var: TK_PR_STATIC simple_local_var
 assignment		: TK_IDENTIFICADOR '=' expression 
 				| TK_IDENTIFICADOR '[' expression ']' '=' expression 
 				;
-expression		: expression_leaf
-				| expression binary_operator expression_leaf
+expression		: simple_expression
+				| expression binary_operator simple_expression ;
+simple_expression : unary_operator simple_expression
+				| expression_leaf
 				| '(' expression ')'
-				| '-' expression
-				| '!' expression
 				;
+unary_operator	: '-' | '!' ;
 binary_operator	: TK_OC_LE
 				| TK_OC_GE
 				| TK_OC_EQ
