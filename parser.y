@@ -160,6 +160,15 @@ do_while        : TK_PR_DO command ';' TK_PR_WHILE '(' expression ')'
 while           : TK_PR_WHILE '(' expression ')' TK_PR_DO command ';'
                 | TK_PR_WHILE '(' expression ')' TK_PR_DO '{' command_block '}' ;
 
+if				: TK_PR_IF '('expression')' then else
+				| TK_PR_IF '('expression')' then
+				;
+then			: TK_PR_THEN command ';'
+				| TK_PR_THEN '{' command_block '}'
+				;
+else			: TK_PR_ELSE command ';'
+				| TK_PR_ELSE '{' command_block '}'
+				;
 
 /** TIPOS AUXILIARES **/
 
