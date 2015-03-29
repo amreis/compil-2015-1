@@ -10,7 +10,7 @@ int getLineNumber (void)
 
 void yyerror (char const *mensagem)
 {
-  fprintf (stderr, "%s - %d\n", mensagem, getLineNumber());
+  fprintf (stderr, "%s at line %d\n", mensagem, getLineNumber());
 }
 
 void main_init (int argc, char **argv)

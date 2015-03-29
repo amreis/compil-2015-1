@@ -7,6 +7,7 @@
 */
 %{
 #include <stdio.h>
+#include "main.h"
 %}
 
 %union {
@@ -79,7 +80,7 @@ static_func_decl: TK_PR_STATIC simple_func_decl ;
 
 /* A function declaration needs a return type, an identifier and an (possibly
    empty) parameter list, followed by the function body surrounded by braces */
-simple_func_decl: type TK_IDENTIFICADOR '(' params_list ')' '{' command_block '}' ;
+simple_func_decl: type TK_IDENTIFICADOR '(' params_list ')' command_block ;
 
 /* The argument list may be empty or not */
 params_list     : nonempty_params_list
@@ -92,19 +93,24 @@ nonempty_params_list: param | nonempty_params_list ',' param ;
 /* A parameter is like a variable declaration, but it might be const */
 param           : TK_PR_CONST simple_var_decl | simple_var_decl ;
 
-command_block   : command
-                | command_block ';' command ;
+command_block   : '{' command_list '}' ;
+command_list	: command
+                | command_list ';' command ;
 
-command         : local_var_decl
+
+command         : flow_control | simple_command | invalid_stmt ;
+simple_command	: local_var_decl
                 | assignment
                 | input_statement
                 | output_statement
                 | return_statement
-                | flow_control
-                | /* empty statement */ 
+                | command_block
+                | /*empty*/
                 | func_call
                 ;
-
+invalid_stmt : gen_func_decl { yyerror("Illegal function declaration ending"); return SINTATICA_ERRO; }
+             | TK_PR_RETURN { yyerror("Return with no value"); return SINTATICA_ERRO; }
+             | TK_PR_OUTPUT { yyerror("Output without values"); return SINTATICA_ERRO; }
 // DECLARAÇÃO DE VARIÁVEL LOCAL
 local_var_decl	: gen_local_var
 				| gen_local_var TK_OC_LE TK_IDENTIFICADOR
@@ -152,23 +158,21 @@ expression_leaf : TK_IDENTIFICADOR
 
 /** CONTROLE DE FLUXO **/
 
-flow_control	: do_while | while ;
+flow_control	: do_while | while | if_then | if_else;
 
-do_while        : TK_PR_DO command ';' TK_PR_WHILE '(' expression ')' 
-                | TK_PR_DO '{' command_block '}' TK_PR_WHILE '(' expression ')' ;
+do_while        : TK_PR_DO command ';' TK_PR_WHILE '(' expression ')'
+				| TK_PR_DO command_block TK_PR_WHILE '(' expression ')' ;
 
-while           : TK_PR_WHILE '(' expression ')' TK_PR_DO command ';'
-                | TK_PR_WHILE '(' expression ')' TK_PR_DO '{' command_block '}' ;
+while           : TK_PR_WHILE '(' expression ')' TK_PR_DO command ;
 
-if				: TK_PR_IF '('expression')' then else
-				| TK_PR_IF '('expression')' then
-				;
-then			: TK_PR_THEN command ';'
-				| TK_PR_THEN '{' command_block '}'
-				;
-else			: TK_PR_ELSE command ';'
-				| TK_PR_ELSE '{' command_block '}'
-				;
+if_then			: TK_PR_IF '(' expression ')' TK_PR_THEN command ; 
+
+if_else			: TK_PR_IF '(' expression ')' TK_PR_THEN command_no_then TK_PR_ELSE command ;
+command_no_then	: do_while | while_no_then | if_else_no_then
+				| simple_command
+                ;
+while_no_then	: TK_PR_WHILE '(' expression ')' TK_PR_DO command_no_then ;
+if_else_no_then	: TK_PR_IF '(' expression ')' TK_PR_THEN command_no_then TK_PR_ELSE command_no_then ;
 
 /** TIPOS AUXILIARES **/
 
