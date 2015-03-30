@@ -8,6 +8,15 @@
     This dictionary is being used to represent the symbol table
 */
 
+struct comp_dict_t* new_full_dict()
+{
+	int i;
+	struct comp_dict_t* resp = new_dict();
+	for(i=0;i<=NUMBER_SYMBOL_TYPES;++i)
+		resp->children[i] = new_dict();
+	return resp;
+}
+
 /**
  * Function to create a new dictionary, and since it's a recursive structure, its children too.
  */

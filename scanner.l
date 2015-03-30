@@ -10,7 +10,7 @@
 #include "cc_dict.h"
 
 unsigned long int line_num = 1;
-struct comp_dict_t* sym_table[NUMBER_SYMBOL_TYPES+1];
+struct comp_dict_t* sym_table;
 %}
 
 INTEGER [[:digit:]]+
@@ -45,7 +45,7 @@ const	return TK_PR_CONST;
 ","|";"|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"<"|">"|"="|"!"|"&"|"$"	{ return yytext[0]; }
 
 true		{
-				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_LITERAL_BOOL], "true");
+				struct comp_dict_item_t* item = query_dict(sym_table->children[SIMBOLO_LITERAL_BOOL], "true");
 				item->last_line = line_num;
 				item->token_type = SIMBOLO_LITERAL_BOOL;
 				item->token_val.bool_val = 1;
@@ -54,7 +54,7 @@ true		{
 			}
 
 false		{
-				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_LITERAL_BOOL], "false");
+				struct comp_dict_item_t* item = query_dict(sym_table->children[SIMBOLO_LITERAL_BOOL], "false");
 				item->last_line = line_num;
 				item->token_type = SIMBOLO_LITERAL_BOOL;
 				item->token_val.bool_val = 0;
@@ -64,7 +64,7 @@ false		{
 
 '.'			{
 				char str[2] = "."; str[0] = yytext[1];
-				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_LITERAL_CHAR], str);
+				struct comp_dict_item_t* item = query_dict(sym_table->children[SIMBOLO_LITERAL_CHAR], str);
 				item->last_line = line_num;
 				item->token_type = SIMBOLO_LITERAL_CHAR;
 				item->token_val.char_val = yytext[1];
@@ -75,7 +75,7 @@ false		{
 \"[^\"]*\" 		{
 				char str[yyleng];
 				strcpy(str, yytext+1); str[yyleng-2] = '\0';
-				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_LITERAL_STRING], str);
+				struct comp_dict_item_t* item = query_dict(sym_table->children[SIMBOLO_LITERAL_STRING], str);
 				if(item->token_type == SIMBOLO_INVALIDO)
 					item->token_val.string_val = (char*)malloc(yyleng);
 				item->last_line = line_num;
@@ -86,7 +86,7 @@ false		{
 			}
 
 {INTEGER} 	{
-				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_LITERAL_INT], yytext);
+				struct comp_dict_item_t* item = query_dict(sym_table->children[SIMBOLO_LITERAL_INT], yytext);
 				item->last_line = line_num;
 				item->token_type = SIMBOLO_LITERAL_INT;
 				item->token_val.int_val = atoi(yytext);
@@ -95,7 +95,7 @@ false		{
 			}
 
 {INTEGER}(\.[[:digit:]]*) {
-				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_LITERAL_FLOAT], yytext);
+				struct comp_dict_item_t* item = query_dict(sym_table->children[SIMBOLO_LITERAL_FLOAT], yytext);
 				item->last_line = line_num;
 				item->token_type = SIMBOLO_LITERAL_FLOAT;
 				item->token_val.float_val = atof(yytext);
@@ -103,7 +103,7 @@ false		{
 				return TK_LIT_FLOAT;
 			}
 {ALFABET}{ALFANUM}* {
-				struct comp_dict_item_t* item = query_dict(sym_table[SIMBOLO_IDENTIFICADOR], yytext);
+				struct comp_dict_item_t* item = query_dict(sym_table->children[SIMBOLO_IDENTIFICADOR], yytext);
 				if(item->token_type == SIMBOLO_INVALIDO)
 					item->token_val.identificador_val = (char*)malloc(yyleng+1);
 				item->last_line = line_num;

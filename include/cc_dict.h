@@ -31,6 +31,7 @@ struct comp_dict_t {
 	struct comp_dict_t* children[TRIE_CHILDREN_SZ];
 };
 
+struct comp_dict_t* new_full_dict();
 struct comp_dict_t* new_dict();
 void free_dict(struct comp_dict_t* t);
 struct comp_dict_item_t* query_dict(struct comp_dict_t* t, const char* s);
