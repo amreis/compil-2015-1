@@ -1,6 +1,5 @@
 #include "cc_dict.h"
 #include <stdlib.h>
-#include <stdio.h>
 
 /**
     The implemented dictionary is a TRIE, a recursive structure that uses the strings'
