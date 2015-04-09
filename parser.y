@@ -45,6 +45,14 @@
 %token <valor_simbolo_lexico> TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
+%left '&'
+%left '<' '>' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE TK_OC_AND TK_OC_OR
+%left '+' '-'
+%left '*' '/'
+%left '!'
+
+%error-verbose
+
 %%
 /* Regras (e ações) da gramática */
 
@@ -145,7 +153,20 @@ nonempty_args_list: expression | nonempty_args_list ',' expression ;
 
 /** EXPRESSÕES LÓGICAS E ARITMÉTICAS **/
 expression		: simple_expression
-				| expression binary_operator simple_expression ;
+				| expression '+' expression
+				| expression '-' expression
+				| expression '*' expression
+				| expression '/' expression
+				| expression '<' expression
+				| expression '>' expression
+				| expression TK_OC_LE expression
+				| expression TK_OC_GE expression
+				| expression TK_OC_EQ expression
+				| expression TK_OC_NE expression
+				| expression TK_OC_AND expression
+				| expression TK_OC_OR expression
+				| expression '&' expression
+				;
 simple_expression : unary_operator simple_expression
 				| expression_leaf
 				| '(' expression ')'
@@ -186,17 +207,6 @@ literal			: TK_LIT_FALSE
 				| TK_LIT_FLOAT
 				;
 unary_operator	: '-' | '!' ;
-
-binary_operator	: TK_OC_LE
-				| TK_OC_GE
-				| TK_OC_EQ
-				| TK_OC_NE
-				| '<' | '>'
-				| '+' | '-' | '*' | '/'
-				| TK_OC_AND
-				| TK_OC_OR
-				| '&' /* missing '|' on definition */
-				;
 
 
 %%
