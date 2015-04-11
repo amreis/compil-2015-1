@@ -54,7 +54,6 @@ struct comp_tree_t* new_tree_02(int type, struct comp_dict_item_t* value, struct
 	return resp;
 }
 
-
 void free_tree(struct comp_tree_t* t)
 {
 	int i;
@@ -64,4 +63,11 @@ void free_tree(struct comp_tree_t* t)
 	if(t->next!=NULL)
 		free_tree(t->next);
 	free(t);
+}
+
+struct comp_tree_t* set_next_tree(struct comp_tree_t* t, int next_type, struct comp_tree_t* next)
+{
+	t->next_type = next_type;
+	t->next = next;
+	return t;
 }

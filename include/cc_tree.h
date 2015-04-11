@@ -16,11 +16,15 @@ struct comp_tree_t {
 };
 
 struct comp_tree_t* new_tree(int type);
+
 struct comp_tree_t* new_tree_0(int type, struct comp_dict_item_t* value);
 struct comp_tree_t* new_tree_1(int type, struct comp_tree_t* child0);
 struct comp_tree_t* new_tree_2(int type, struct comp_tree_t* child0, struct comp_tree_t* child1);
 struct comp_tree_t* new_tree_3(int type, struct comp_tree_t* child0, struct comp_tree_t* child1, struct comp_tree_t* child2);
 struct comp_tree_t* new_tree_02(int type, struct comp_dict_item_t* value, struct comp_tree_t* child0, struct comp_tree_t* child1);
+
 void free_tree(struct comp_tree_t* t);
+
+struct comp_tree_t* set_next_tree(struct comp_tree_t* t, int next_type, struct comp_tree_t* next);
 
 #endif
