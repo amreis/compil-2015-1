@@ -23,6 +23,7 @@ struct comp_dict_item_t
 		int bool_val;
 		char* identificador_val;
 	} token_val;
+    char *lex;
 };
 
 #define TRIE_CHILDREN_SZ 256

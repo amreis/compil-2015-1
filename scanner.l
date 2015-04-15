@@ -49,6 +49,7 @@ true		{
 				item->last_line = line_num;
 				item->token_type = SIMBOLO_LITERAL_BOOL;
 				item->token_val.bool_val = 1;
+				item->lex = strdup(yytext);
 				yylval.valor_simbolo_lexico = item;
 				return TK_LIT_TRUE;
 			}
@@ -58,6 +59,7 @@ false		{
 				item->last_line = line_num;
 				item->token_type = SIMBOLO_LITERAL_BOOL;
 				item->token_val.bool_val = 0;
+				item->lex = strdup(yytext);
 				yylval.valor_simbolo_lexico = item;
 				return TK_LIT_FALSE;
 			}
@@ -68,6 +70,7 @@ false		{
 				item->last_line = line_num;
 				item->token_type = SIMBOLO_LITERAL_CHAR;
 				item->token_val.char_val = yytext[1];
+				item->lex = strdup(str);
 				yylval.valor_simbolo_lexico = item;
 				return TK_LIT_CHAR;
 			}
@@ -80,7 +83,9 @@ false		{
 					item->token_val.string_val = (char*)malloc(yyleng);
 				item->last_line = line_num;
 				item->token_type = SIMBOLO_LITERAL_STRING;
+				// TODO i don't think these strcpy calls are the right thing to do.
 				strcpy(item->token_val.string_val, str);
+				item->lex = strdup(str);
 				yylval.valor_simbolo_lexico = item;
 				return TK_LIT_STRING;
 			}
@@ -90,6 +95,7 @@ false		{
 				item->last_line = line_num;
 				item->token_type = SIMBOLO_LITERAL_INT;
 				item->token_val.int_val = atoi(yytext);
+				item->lex = strdup(yytext);
 				yylval.valor_simbolo_lexico = item;
 				return TK_LIT_INT;
 			}
@@ -99,6 +105,7 @@ false		{
 				item->last_line = line_num;
 				item->token_type = SIMBOLO_LITERAL_FLOAT;
 				item->token_val.float_val = atof(yytext);
+				item->lex = strdup(yytext);
 				yylval.valor_simbolo_lexico = item;
 				return TK_LIT_FLOAT;
 			}
@@ -109,6 +116,7 @@ false		{
 				item->last_line = line_num;
 				item->token_type = SIMBOLO_IDENTIFICADOR;
 				strcpy(item->token_val.identificador_val, yytext);
+				item->lex = strdup(yytext);
 				yylval.valor_simbolo_lexico = item;
 				return TK_IDENTIFICADOR;
 			}

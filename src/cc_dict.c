@@ -93,5 +93,6 @@ void free_dict_item(struct comp_dict_item_t* item)
 		free(item->token_val.string_val);
 	if(item->token_type == SIMBOLO_IDENTIFICADOR)
 		free(item->token_val.identificador_val);
+    free(item->lex);
 	free(item);
 }
