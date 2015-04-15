@@ -55,6 +55,7 @@
 
 %type<ast> literal expression_leaf expression simple_expression flow_control 
 %type<ast> do_while while if_then if_else command_no_then  while_no_then if_else_no_then command simple_command command_block command_list
+%type<ast> return_statement assignment input_statement
 
 %error-verbose
 
@@ -136,19 +137,22 @@ simple_local_var: type TK_IDENTIFICADOR
 static_local_var: TK_PR_STATIC simple_local_var 
 				;
 // ATRIBUIÇÃO
-assignment		: TK_IDENTIFICADOR '=' expression 
-				| TK_IDENTIFICADOR '[' expression ']' '=' expression 
+assignment		: TK_IDENTIFICADOR '=' expression { $$ = new_tree_2(AST_ATRIBUICAO, new_tree_0(AST_IDENTIFICADOR, $1), $3);}
+				| TK_IDENTIFICADOR '[' expression ']' '=' expression { $$ = new_tree_2(AST_ATRIBUICAO,new_tree_2(AST_VETOR_INDEXADO, new_tree_0(AST_IDENTIFICADOR, $1), $3), $6);}
+				;
+// ENTRADA
+input_statement	: TK_PR_INPUT expression '=' '>' expression {$$ = new_tree_2(AST_INPUT, $2, $5);}
+				; /* bug: you can have whitespace between '=' and '>' */
+// SAÍDA
+output_statement: TK_PR_OUTPUT comma_expr_list
+				;
+comma_expr_list	: expression 
+				| comma_expr_list ',' expression 
 				;
 
-// ENTRADA
-input_statement	: TK_PR_INPUT expression '=' '>' expression ; /* bug: you can have whitespace between '=' and '>' */
-
-// SAÍDA
-output_statement : TK_PR_OUTPUT comma_expr_list ;
-comma_expr_list	: expression | comma_expr_list ',' expression ;
-
 // RETORNO
-return_statement: TK_PR_RETURN expression ;
+return_statement: TK_PR_RETURN expression { $$ = new_tree_1(AST_RETURN, $2);}
+				;
 
 // CHAMADA DE FUNÇÃO
 func_call		: TK_IDENTIFICADOR '(' args_list ')' ;
@@ -183,6 +187,8 @@ expression_leaf : TK_IDENTIFICADOR	{ $$ = new_tree_0(AST_IDENTIFICADOR, $1); }
 				| literal			{ $$ = $1; }
 				| func_call
 				;
+
+
 
 /** CONTROLE DE FLUXO **/
 
