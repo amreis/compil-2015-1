@@ -53,7 +53,7 @@
 %left '*' '/'
 %left '!' INVERSION
 
-%type<ast> literal expression_leaf expression
+%type<ast> literal expression_leaf expression simple_expression
 
 %error-verbose
 
@@ -156,26 +156,26 @@ nonempty_args_list: expression | nonempty_args_list ',' expression ;
 
 
 /** EXPRESSÕES LÓGICAS E ARITMÉTICAS **/
-expression		: simple_expression
-				| expression '+' expression
-				| expression '-' expression
-				| expression '*' expression
-				| expression '/' expression
-				| expression '<' expression
-				| expression '>' expression
-				| expression TK_OC_LE expression
-				| expression TK_OC_GE expression
-				| expression TK_OC_EQ expression
-				| expression TK_OC_NE expression
-				| expression TK_OC_AND expression
-				| expression TK_OC_OR expression
-				| expression '&' expression
-				| '-' simple_expression %prec INVERSION
-				| '!' simple_expression
+expression		: simple_expression { $$ = $1;}
+				| expression '+' expression { $$ = new_tree_2(AST_ARIM_SOMA, $1, $3);}
+				| expression '-' expression { $$ = new_tree_2(AST_ARIM_SUBTRACAO, $1, $3);}
+				| expression '*' expression { $$ = new_tree_2(AST_ARIM_MULTIPLICACAO, $1, $3);}
+				| expression '/' expression { $$ = new_tree_2(AST_ARIM_DIVISAO, $1, $3);}
+				| expression '<' expression { $$ = new_tree_2(AST_LOGICO_COMP_L, $1, $3);}
+				| expression '>' expression { $$ = new_tree_2(AST_LOGICO_COMP_G, $1, $3);}
+				| expression TK_OC_LE expression { $$ = new_tree_2(AST_LOGICO_COMP_LE, $1, $3);}
+				| expression TK_OC_GE expression { $$ = new_tree_2(AST_LOGICO_COMP_GE, $1, $3);}
+				| expression TK_OC_EQ expression { $$ = new_tree_2(AST_LOGICO_COMP_IGUAL, $1, $3);}
+				| expression TK_OC_NE expression { $$ = new_tree_2(AST_LOGICO_COMP_DIF, $1, $3);}
+				| expression TK_OC_AND expression { $$ = new_tree_2(AST_LOGICO_E, $1, $3);}
+				| expression TK_OC_OR expression { $$ = new_tree_2(AST_LOGICO_OU, $1, $3);}
+				// | expression '&' expression { $$ = new_tree_2(AST_LOGICO_E, $1, $3);}
+				| '-' simple_expression %prec INVERSION { $$ = new_tree_1(AST_ARIM_INVERSAO, $2);}
+				| '!' simple_expression { $$ = new_tree_1(AST_LOGICO_COMP_NEGACAO, $2);}
 				;
 simple_expression :
-			    expression_leaf
-				| '(' expression ')'
+			    expression_leaf { $$ = $1;}
+				| '(' expression ')' { $$ = $2;} 
 				;
 expression_leaf : TK_IDENTIFICADOR	{ $$ = new_tree_0(AST_IDENTIFICADOR, $1); }
 				| TK_IDENTIFICADOR '[' expression ']' { $$ = new_tree_2(AST_VETOR_INDEXADO, new_tree_0(AST_IDENTIFICADOR, $1), $3); }
