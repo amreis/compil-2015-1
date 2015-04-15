@@ -53,7 +53,8 @@
 %left '*' '/'
 %left '!' INVERSION
 
-%type<ast> literal expression_leaf expression simple_expression
+%type<ast> literal expression_leaf expression simple_expression flow_control 
+%type<ast> do_while while if_then if_else command_no_then  while_no_then if_else_no_then command simple_command command_block command_list
 
 %error-verbose
 
@@ -185,7 +186,10 @@ expression_leaf : TK_IDENTIFICADOR	{ $$ = new_tree_0(AST_IDENTIFICADOR, $1); }
 
 /** CONTROLE DE FLUXO **/
 
-flow_control	: do_while | while | if_then | if_else { $$ = $1;}
+flow_control	: do_while { $$ = $1;}
+				| while { $$ = $1;}
+				| if_then { $$ = $1;}
+				| if_else { $$ = $1;}
 				;
 do_while        : TK_PR_DO command ';' TK_PR_WHILE '(' expression ')' { $$ = new_tree_2(AST_DO_WHILE, $2, $6);}
 				| TK_PR_DO command_block TK_PR_WHILE '(' expression ')' { $$ = new_tree_2(AST_DO_WHILE, $2, $5);}
@@ -196,7 +200,10 @@ if_then			: TK_PR_IF '(' expression ')' TK_PR_THEN command { $$ = new_tree_3(AST
 				;
 if_else			: TK_PR_IF '(' expression ')' TK_PR_THEN command_no_then TK_PR_ELSE command { $$ = new_tree_3(AST_IF_ELSE, $3, $6, $8);}
 				;
-command_no_then	: do_while | while_no_then | if_else_no_then | simple_command { $$ = $1;}
+command_no_then	: do_while { $$ = $1;}
+				| while_no_then { $$ = $1;}
+				| if_else_no_then { $$ = $1;}
+				| simple_command { $$ = $1;}
                 ;
 while_no_then	: TK_PR_WHILE '(' expression ')' TK_PR_DO command_no_then { $$ = new_tree_2(AST_WHILE_DO, $3, $6);}
 				;
