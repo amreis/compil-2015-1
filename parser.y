@@ -8,10 +8,12 @@
 %{
 #include <stdio.h>
 #include "main.h"
+#include "cc_ast.h"
 %}
 
 %union {
 	struct comp_dict_item_t* valor_simbolo_lexico;
+	struct comp_tree_t* ast;
 }
 
 /* Declaração dos tokens da linguagem */
@@ -49,7 +51,9 @@
 %left '<' '>' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE TK_OC_AND TK_OC_OR
 %left '+' '-'
 %left '*' '/'
-%left '!'
+%left '!' INVERSION
+
+%type<ast> literal expression_leaf expression
 
 %error-verbose
 
@@ -166,14 +170,16 @@ expression		: simple_expression
 				| expression TK_OC_AND expression
 				| expression TK_OC_OR expression
 				| expression '&' expression
+				| '-' simple_expression %prec INVERSION
+				| '!' simple_expression
 				;
-simple_expression : unary_operator simple_expression
-				| expression_leaf
+simple_expression :
+			    expression_leaf
 				| '(' expression ')'
 				;
-expression_leaf : TK_IDENTIFICADOR
-				| TK_IDENTIFICADOR '[' expression ']'
-				| literal 
+expression_leaf : TK_IDENTIFICADOR	{ $$ = new_tree_0(AST_IDENTIFICADOR, $1); }
+				| TK_IDENTIFICADOR '[' expression ']' { $$ = new_tree_2(AST_VETOR_INDEXADO, new_tree_0(AST_IDENTIFICADOR, $1), $3); }
+				| literal			{ $$ = $1; }
 				| func_call
 				;
 
@@ -199,14 +205,14 @@ if_else_no_then	: TK_PR_IF '(' expression ')' TK_PR_THEN command_no_then TK_PR_E
 
 type  : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING ;
 
-literal			: TK_LIT_FALSE 
-				| TK_LIT_TRUE
-				| TK_LIT_CHAR
-				| TK_LIT_STRING
-				| TK_LIT_INT
-				| TK_LIT_FLOAT
+literal			: TK_LIT_FALSE 	{ $$ = new_tree_0(AST_LITERAL, $1); }
+				| TK_LIT_TRUE  	{ $$ = new_tree_0(AST_LITERAL, $1); }
+				| TK_LIT_CHAR	{ $$ = new_tree_0(AST_LITERAL, $1); }
+				| TK_LIT_STRING	{ $$ = new_tree_0(AST_LITERAL, $1); }
+				| TK_LIT_INT	{ $$ = new_tree_0(AST_LITERAL, $1); }
+				| TK_LIT_FLOAT	{ $$ = new_tree_0(AST_LITERAL, $1); }
 				;
-unary_operator	: '-' | '!' ;
+// unary_operator	: '-' | '!' ;
 
 
 %%
