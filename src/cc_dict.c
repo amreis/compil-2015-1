@@ -61,8 +61,8 @@ struct comp_dict_item_t* query_dict(struct comp_dict_t* t, const char* s)
 	{
 		t->val = (struct comp_dict_item_t*)malloc(sizeof(struct comp_dict_item_t));
 		t->val->token_type = SIMBOLO_INVALIDO;
+        t->val->lex = NULL;
 	}
-    t->val->lex = NULL;
 	return t->val;
 }
 
