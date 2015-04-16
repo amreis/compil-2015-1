@@ -13,6 +13,7 @@ struct comp_tree_t {
 	struct comp_tree_t* child[3];
 	int next_type;
 	struct comp_tree_t* next;
+	struct comp_tree_t* first;
 };
 
 struct comp_tree_t* new_tree(int type);
@@ -25,6 +26,6 @@ struct comp_tree_t* new_tree_02(int type, struct comp_dict_item_t* value, struct
 
 void free_tree(struct comp_tree_t* t);
 
-struct comp_tree_t* set_next_tree(struct comp_tree_t* t, int next_type, struct comp_tree_t* next);
+void set_next_tree(struct comp_tree_t* t, int next_type, struct comp_tree_t* next);
 
 #endif

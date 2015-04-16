@@ -14,6 +14,7 @@ struct comp_tree_t* new_tree(int type)
 	resp->child[2] = NULL;
 	resp->next_type = NEXT_INVALID;
 	resp->next = NULL;
+	resp->first = resp;
 	return resp;
 }
 
@@ -81,10 +82,10 @@ void free_tree(struct comp_tree_t* t)
 	free(t);
 }
 
-struct comp_tree_t* set_next_tree(struct comp_tree_t* t, int next_type, struct comp_tree_t* next)
+void set_next_tree(struct comp_tree_t* t, int next_type, struct comp_tree_t* next)
 {
 	t->next_type = next_type;
 	t->next = next;
+	next->first = t->first;
     gv_connect(t, next);
-	return t;
 }

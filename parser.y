@@ -56,6 +56,7 @@
 %type<ast> literal expression_leaf expression simple_expression flow_control 
 %type<ast> do_while while if_then if_else command_no_then  while_no_then if_else_no_then command simple_command command_block command_list
 %type<ast> return_statement assignment input_statement
+%type<ast> func_call args_list
 
 %error-verbose
 
@@ -155,9 +156,12 @@ return_statement: TK_PR_RETURN expression { $$ = new_tree_1(AST_RETURN, $2);}
 				;
 
 // CHAMADA DE FUNÇÃO
-func_call		: TK_IDENTIFICADOR '(' args_list ')' ;
-args_list		: nonempty_args_list | /* empty */;
-nonempty_args_list: expression | nonempty_args_list ',' expression ;
+func_call		: TK_IDENTIFICADOR '(' ')' { $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_0(AST_IDENTIFICADOR, $1)); }
+				| TK_IDENTIFICADOR '(' args_list ')' { $$ = new_tree_2(AST_CHAMADA_DE_FUNCAO, new_tree_0(AST_IDENTIFICADOR, $1), $3->first); }
+				;
+args_list		: expression { $$ = $1; }
+				| args_list ',' expression { set_next_tree($1, NEXT_ARGUMENT, $3); $$ = $3; }
+				;
 
 
 /** EXPRESSÕES LÓGICAS E ARITMÉTICAS **/
@@ -202,7 +206,7 @@ do_while        : TK_PR_DO command ';' TK_PR_WHILE '(' expression ')' { $$ = new
 				;
 while           : TK_PR_WHILE '(' expression ')' TK_PR_DO command { $$ = new_tree_2(AST_WHILE_DO, $3, $6);}
 				; 
-if_then			: TK_PR_IF '(' expression ')' TK_PR_THEN command { $$ = new_tree_3(AST_IF_ELSE, $3, $6, NULL);}
+if_then			: TK_PR_IF '(' expression ')' TK_PR_THEN command { $$ = new_tree_2(AST_IF_ELSE, $3, $6);}
 				;
 if_else			: TK_PR_IF '(' expression ')' TK_PR_THEN command_no_then TK_PR_ELSE command { $$ = new_tree_3(AST_IF_ELSE, $3, $6, $8);}
 				;
