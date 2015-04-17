@@ -18,11 +18,18 @@ struct comp_tree_t* new_tree(int type)
 	return resp;
 }
 
-struct comp_tree_t* new_tree_0(int type, struct comp_dict_item_t* value)
+struct comp_tree_t* new_tree_valued(int type, struct comp_dict_item_t* value)
 {
 	struct comp_tree_t* resp = new_tree(type);
 	resp->value = value;
     gv_declare(type, resp, value->lex);
+	return resp;
+}
+
+struct comp_tree_t* new_tree_0(int type)
+{
+	struct comp_tree_t* resp = new_tree(type);
+    gv_declare(type, resp, NULL);
 	return resp;
 }
 
@@ -31,7 +38,7 @@ struct comp_tree_t* new_tree_1(int type, struct comp_tree_t* child0)
 	struct comp_tree_t* resp = new_tree(type);
 	resp->child[0] = child0;
     gv_declare(type, resp, NULL);
-    gv_connect(resp, child0);
+    if(child0 != NULL) gv_connect(resp, child0);
 	return resp;
 }
 
@@ -41,8 +48,8 @@ struct comp_tree_t* new_tree_2(int type, struct comp_tree_t* child0, struct comp
 	resp->child[0] = child0;
 	resp->child[1] = child1;
     gv_declare(type, resp, NULL);
-    gv_connect(resp, child0);
-    gv_connect(resp, child1);
+    if(child0 != NULL) gv_connect(resp, child0);
+    if(child1 != NULL) gv_connect(resp, child1);
 	return resp;
 }
 
@@ -53,21 +60,9 @@ struct comp_tree_t* new_tree_3(int type, struct comp_tree_t* child0, struct comp
 	resp->child[1] = child1;
 	resp->child[2] = child2;
     gv_declare(type, resp, NULL);
-    gv_connect(resp, child0);
-    gv_connect(resp, child1);
-    gv_connect(resp, child2);
-	return resp;
-}
-
-struct comp_tree_t* new_tree_02(int type, struct comp_dict_item_t* value, struct comp_tree_t* child0, struct comp_tree_t* child1)
-{
-	struct comp_tree_t* resp = new_tree(type);
-	resp->value = value;
-	resp->child[0] = child0;
-	resp->child[1] = child1;
-    gv_declare(type, resp, value->lex);
-    gv_connect(resp, child0);
-    gv_connect(resp, child1);
+    if(child0 != NULL) gv_connect(resp, child0);
+    if(child1 != NULL) gv_connect(resp, child1);
+    if(child2 != NULL) gv_connect(resp, child2);
 	return resp;
 }
 
@@ -82,10 +77,27 @@ void free_tree(struct comp_tree_t* t)
 	free(t);
 }
 
-void set_next_tree(struct comp_tree_t* t, int next_type, struct comp_tree_t* next)
+struct comp_tree_t* append_next_tree(struct comp_tree_t* t, int next_type, struct comp_tree_t* next)
 {
-	t->next_type = next_type;
-	t->next = next;
-	next->first = t->first;
-    gv_connect(t, next);
+	if(t == NULL)
+		return next;
+	else if(next != NULL)
+	{
+		t->next_type = next_type;
+		t->next = next;
+		next->first = t->first;
+		gv_connect(t, next);
+		return next;
+	}
+	else
+		return t;
+}
+
+void set_list_child_tree(struct comp_tree_t* t, int child_index, struct comp_tree_t* last_child)
+{
+	if(last_child != NULL)
+	{
+		t->child[child_index] = last_child->first;
+		gv_connect(t, last_child->first);
+	}
 }
