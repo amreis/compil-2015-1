@@ -1,0 +1,35 @@
+// Fibonacci sequence, using memorization.
+
+int fib_m[100];
+int last_fib_calculated;
+
+int fib(int n) {
+	if (last_fib_calculated < 1) then {
+		output "Please init fib_m and last_fib_calculated.\n";
+		return -1;
+	};
+	if (n >= 100) then return -1;
+
+	if (n <= last_fib_calculated) then
+		return fib_m[n]
+	else {
+		int x <= last_fib_calculated;
+		while (x < n) do {
+			fib_m[x+1] = fib_m[x] + fib_m[x-1];
+			x = x + 1;
+		};
+		last_fib_calculated = n;
+		return fib_m[n];
+	}
+}
+
+int main() {
+	last_fib_calculated = 1;
+	fib_m[0] = 1;
+	fib_m[1] = 1;
+	int i <= 99;
+	while (i >= 0) do {
+		output i, " ", fib(i), "\n";
+		i = i - 1;
+	}
+}

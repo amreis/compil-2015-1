@@ -139,7 +139,7 @@ invalid_stmt : gen_func_decl { yyerror("Illegal function declaration ending"); r
 // DECLARAÇÃO DE VARIÁVEL LOCAL
 local_var_decl	: gen_local_var
 				| gen_local_var TK_OC_LE TK_IDENTIFICADOR
-				| gen_local_var TK_OC_LE     literal
+				| gen_local_var TK_OC_LE init_literal
 				;
 gen_local_var	: simple_local_var | static_local_var ;
 simple_local_var: type TK_IDENTIFICADOR 
@@ -240,6 +240,13 @@ literal			: TK_LIT_FALSE 	{ $$ = new_tree_valued(AST_LITERAL, $1); }
 				| TK_LIT_STRING	{ $$ = new_tree_valued(AST_LITERAL, $1); }
 				| TK_LIT_INT	{ $$ = new_tree_valued(AST_LITERAL, $1); }
 				| TK_LIT_FLOAT	{ $$ = new_tree_valued(AST_LITERAL, $1); }
+				;
+init_literal	: TK_LIT_FALSE
+				| TK_LIT_TRUE
+				| TK_LIT_CHAR
+				| TK_LIT_STRING
+				| TK_LIT_INT
+				| TK_LIT_FLOAT
 				;
 // unary_operator	: '-' | '!' ;
 
