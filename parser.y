@@ -55,20 +55,21 @@
 
 %type<ast> literal expression_leaf expression simple_expression flow_control 
 %type<ast> do_while while if_then if_else command_no_then  while_no_then if_else_no_then command simple_command command_block command_list
-%type<ast> return_statement assignment input_statement
-%type<ast> func_call args_list
+%type<ast> return_statement assignment input_statement output_statement
+%type<ast> func_call args_list output_list program full_program gen_func_decl static_func_decl simple_func_decl
 
 %error-verbose
 
 %%
 /* Regras (e ações) da gramática */
 
+full_program: program { $$ = new_tree_0(AST_PROGRAMA); set_list_child_tree($$,0,$1); free_tree($$); } ;
 
 /* A program is a sequence of global variable declarations and function
    declarations. It may also be empty. */
-program  : program global_var_decl ';'
-          | program gen_func_decl
-          |
+program  : program global_var_decl ';' { $$ = $1; }
+          | program gen_func_decl { $$ = append_next_tree($1, NEXT_FUNCTION, $2); }
+          | { $$ = NULL; }
           ;
 /* A global var declaration may be static, or a vector. Or just a simple one. */
 global_var_decl : static_var_decl
@@ -87,15 +88,18 @@ simple_var_decl : type TK_IDENTIFICADOR ;
 
 /** FUNCTIONS */
 /* A function can be static or not. */
-gen_func_decl   : static_func_decl
-                | simple_func_decl ;
+gen_func_decl   : static_func_decl { $$ = $1; }
+                | simple_func_decl { $$ = $1; }
+                ;
 
 /* If it's static, its declaration is preceded by the keyword 'static' */
-static_func_decl: TK_PR_STATIC simple_func_decl ;
+static_func_decl: TK_PR_STATIC simple_func_decl { $$ = $2; }
+				;
 
 /* A function declaration needs a return type, an identifier and an (possibly
    empty) parameter list, followed by the function body surrounded by braces */
-simple_func_decl: type TK_IDENTIFICADOR '(' params_list ')' command_block ;
+simple_func_decl: type TK_IDENTIFICADOR '(' params_list ')' '{' command_list '}' { $$ = new_tree_valued(AST_FUNCAO, $2); set_list_child_tree($$,0,$7); }
+				;
 
 /* The argument list may be empty or not */
 params_list     : nonempty_params_list
@@ -108,24 +112,30 @@ nonempty_params_list: param | nonempty_params_list ',' param ;
 /* A parameter is like a variable declaration, but it might be const */
 param           : TK_PR_CONST simple_var_decl | simple_var_decl ;
 
-command_block   : '{' command_list '}' ;
-command_list	: command
-                | command_list ';' command ;
+command_block   : '{' command_list '}' { $$ = new_tree_0(AST_BLOCO); set_list_child_tree($$,0,$2); }
+				;
+command_list	: command { $$ = $1; }
+                | command_list ';' command { $$ = append_next_tree($1, NEXT_COMMAND, $3); }
+                ;
 
 
-command         : flow_control | simple_command | invalid_stmt ;
-simple_command	: local_var_decl
-                | assignment
-                | input_statement
-                | output_statement
-                | return_statement
-                | command_block
-                | /*empty*/
-                | func_call
+command         : flow_control { $$ = $1; }
+				| simple_command { $$ = $1; }
+				| invalid_stmt { $$ = NULL; }
+				;
+simple_command	: local_var_decl { $$ = NULL; }
+                | assignment { $$ = $1; }
+                | input_statement { $$ = $1; }
+                | output_statement { $$ = $1; }
+                | return_statement { $$ = $1; }
+                | command_block { $$ = $1; }
+                | /*empty*/ { $$ = NULL; }
+                | func_call { $$ = $1; }
                 ;
 invalid_stmt : gen_func_decl { yyerror("Illegal function declaration ending"); return SINTATICA_ERRO; }
              | TK_PR_RETURN { yyerror("Return with no value"); return SINTATICA_ERRO; }
              | TK_PR_OUTPUT { yyerror("Output without values"); return SINTATICA_ERRO; }
+             ;
 // DECLARAÇÃO DE VARIÁVEL LOCAL
 local_var_decl	: gen_local_var
 				| gen_local_var TK_OC_LE TK_IDENTIFICADOR
@@ -135,20 +145,20 @@ gen_local_var	: simple_local_var | static_local_var ;
 simple_local_var: type TK_IDENTIFICADOR 
 				| TK_PR_CONST type TK_IDENTIFICADOR 				
 				;
-static_local_var: TK_PR_STATIC simple_local_var 
+static_local_var: TK_PR_STATIC simple_local_var
 				;
 // ATRIBUIÇÃO
-assignment		: TK_IDENTIFICADOR '=' expression { $$ = new_tree_2(AST_ATRIBUICAO, new_tree_0(AST_IDENTIFICADOR, $1), $3);}
-				| TK_IDENTIFICADOR '[' expression ']' '=' expression { $$ = new_tree_2(AST_ATRIBUICAO,new_tree_2(AST_VETOR_INDEXADO, new_tree_0(AST_IDENTIFICADOR, $1), $3), $6);}
+assignment		: TK_IDENTIFICADOR '=' expression { $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);}
+				| TK_IDENTIFICADOR '[' expression ']' '=' expression { $$ = new_tree_2(AST_ATRIBUICAO,new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3), $6);}
 				;
 // ENTRADA
 input_statement	: TK_PR_INPUT expression '=' '>' expression {$$ = new_tree_2(AST_INPUT, $2, $5);}
 				; /* bug: you can have whitespace between '=' and '>' */
 // SAÍDA
-output_statement: TK_PR_OUTPUT comma_expr_list
+output_statement: TK_PR_OUTPUT output_list { $$ = new_tree_0(AST_OUTPUT); set_list_child_tree($$,0,$2); }
 				;
-comma_expr_list	: expression 
-				| comma_expr_list ',' expression 
+output_list		: expression { $$ = $1; }
+				| output_list ',' expression { $$ = append_next_tree($1, NEXT_OUTPUT, $3); }
 				;
 
 // RETORNO
@@ -156,11 +166,11 @@ return_statement: TK_PR_RETURN expression { $$ = new_tree_1(AST_RETURN, $2);}
 				;
 
 // CHAMADA DE FUNÇÃO
-func_call		: TK_IDENTIFICADOR '(' ')' { $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_0(AST_IDENTIFICADOR, $1)); }
-				| TK_IDENTIFICADOR '(' args_list ')' { $$ = new_tree_2(AST_CHAMADA_DE_FUNCAO, new_tree_0(AST_IDENTIFICADOR, $1), $3->first); }
+func_call		: TK_IDENTIFICADOR '(' ')' { $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1)); }
+				| TK_IDENTIFICADOR '(' args_list ')' { $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1)); set_list_child_tree($$,1,$3); }
 				;
 args_list		: expression { $$ = $1; }
-				| args_list ',' expression { set_next_tree($1, NEXT_ARGUMENT, $3); $$ = $3; }
+				| args_list ',' expression { $$ = append_next_tree($1, NEXT_ARGUMENT, $3); }
 				;
 
 
@@ -186,8 +196,8 @@ simple_expression :
 			    expression_leaf { $$ = $1;}
 				| '(' expression ')' { $$ = $2;} 
 				;
-expression_leaf : TK_IDENTIFICADOR	{ $$ = new_tree_0(AST_IDENTIFICADOR, $1); }
-				| TK_IDENTIFICADOR '[' expression ']' { $$ = new_tree_2(AST_VETOR_INDEXADO, new_tree_0(AST_IDENTIFICADOR, $1), $3); }
+expression_leaf : TK_IDENTIFICADOR	{ $$ = new_tree_valued(AST_IDENTIFICADOR, $1); }
+				| TK_IDENTIFICADOR '[' expression ']' { $$ = new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3); }
 				| literal			{ $$ = $1; }
 				| func_call
 				;
@@ -224,12 +234,12 @@ if_else_no_then	: TK_PR_IF '(' expression ')' TK_PR_THEN command_no_then TK_PR_E
 
 type  : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING ;
 
-literal			: TK_LIT_FALSE 	{ $$ = new_tree_0(AST_LITERAL, $1); }
-				| TK_LIT_TRUE  	{ $$ = new_tree_0(AST_LITERAL, $1); }
-				| TK_LIT_CHAR	{ $$ = new_tree_0(AST_LITERAL, $1); }
-				| TK_LIT_STRING	{ $$ = new_tree_0(AST_LITERAL, $1); }
-				| TK_LIT_INT	{ $$ = new_tree_0(AST_LITERAL, $1); }
-				| TK_LIT_FLOAT	{ $$ = new_tree_0(AST_LITERAL, $1); }
+literal			: TK_LIT_FALSE 	{ $$ = new_tree_valued(AST_LITERAL, $1); }
+				| TK_LIT_TRUE  	{ $$ = new_tree_valued(AST_LITERAL, $1); }
+				| TK_LIT_CHAR	{ $$ = new_tree_valued(AST_LITERAL, $1); }
+				| TK_LIT_STRING	{ $$ = new_tree_valued(AST_LITERAL, $1); }
+				| TK_LIT_INT	{ $$ = new_tree_valued(AST_LITERAL, $1); }
+				| TK_LIT_FLOAT	{ $$ = new_tree_valued(AST_LITERAL, $1); }
 				;
 // unary_operator	: '-' | '!' ;
 
