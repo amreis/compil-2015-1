@@ -48,8 +48,8 @@
 %token TOKEN_ERRO
 
 %left '&'
-%left '<' '>' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE TK_OC_AND TK_OC_OR
-%left '+' '-'
+%left '<' '>' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE TK_OC_OR
+%left '+' '-' TK_OC_AND
 %left '*' '/'
 %left '!' INVERSION
 
