@@ -11,7 +11,9 @@
 #include "cc_stack.h"
 
 unsigned long int line_num = 1;
+
 comp_stack_t* sym_stack;
+
 %}
 
 INTEGER [[:digit:]]+

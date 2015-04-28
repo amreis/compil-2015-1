@@ -4,7 +4,6 @@
 #include "cc_dict.h"
 #include <stdlib.h>
 
-
 comp_tree_t* new_tree(int type)
 {
 	comp_tree_t* resp = (comp_tree_t*)malloc(sizeof(comp_tree_t));

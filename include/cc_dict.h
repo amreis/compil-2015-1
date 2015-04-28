@@ -41,7 +41,7 @@ typedef struct _comp_dict_item_t
 typedef struct _comp_dict_t {
 	comp_dict_item_t* val; //NULL se não for folha
 	struct _comp_dict_t* children[TRIE_CHILDREN_SZ];
-} comp_dict_t;
+} comp_dict_t ;
 
 comp_dict_t* new_full_dict();
 comp_dict_t* new_dict();
