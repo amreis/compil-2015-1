@@ -66,6 +66,19 @@ struct comp_dict_item_t* query_dict(struct comp_dict_t* t, const char* s)
 	return t->val;
 }
 
+struct comp_dict_item_t* query_dict_noncreate(struct comp_dict_t* t, const char* s)
+{
+    int cur_char;
+    for (cur_char=0; s[cur_char]; ++cur_char)
+    {
+        if (t->children[s[cur_char]] == NULL)
+            return NULL;
+        t = t->children[s[cur_char]];
+    }
+    if (t->val == NULL) return NULL;
+    return t->val;
+}
+
 /**
  * Insertion function: given the dictionary, the key and the value, inserts it in the tree
  * or replaces its old value in case the key was already present in the dictionary.

@@ -36,6 +36,7 @@ struct comp_dict_t* new_full_dict();
 struct comp_dict_t* new_dict();
 void free_dict(struct comp_dict_t* t);
 struct comp_dict_item_t* query_dict(struct comp_dict_t* t, const char* s);
+struct comp_dict_item_t* query_dict_noncreate(struct comp_dict_t* t, const char* s);
 void insert_in_dict(struct comp_dict_t* t, const char* s, struct comp_dict_item_t item);
 struct comp_dict_item_t create_dict_item(int last_line, int token_type);
 void free_dict_item(struct comp_dict_item_t* item);
