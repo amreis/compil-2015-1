@@ -7,10 +7,10 @@
     This dictionary is being used to represent the symbol table
 */
 
-comp_dict_t* new_full_dict()
+struct comp_dict_t* new_full_dict()
 {
 	int i;
-	comp_dict_t* resp = new_dict();
+	struct comp_dict_t* resp = new_dict();
 	for(i=0;i<=NUMBER_SYMBOL_TYPES;++i)
 		resp->children[i] = new_dict();
 	return resp;
@@ -19,10 +19,10 @@ comp_dict_t* new_full_dict()
 /**
  * Function to create a new dictionary, and since it's a recursive structure, its children too.
  */
-comp_dict_t* new_dict()
+struct comp_dict_t* new_dict()
 {
 	int i;
-	comp_dict_t* resp = (comp_dict_t*)malloc(sizeof(comp_dict_t));
+	struct comp_dict_t* resp = (struct comp_dict_t*)malloc(sizeof(struct comp_dict_t));
 	resp->val = NULL;
 	for(i=0;i<TRIE_CHILDREN_SZ;++i)
 		resp->children[i]=NULL;
@@ -32,7 +32,7 @@ comp_dict_t* new_dict()
 /**
  * Destructor of the dictionary structure.
  */
-void free_dict(comp_dict_t* t)
+void free_dict(struct comp_dict_t* t)
 {
 	int i;
 	for(i=0;i<TRIE_CHILDREN_SZ;++i)
@@ -47,7 +47,7 @@ void free_dict(comp_dict_t* t)
  * does not exist yet. Returns a pointer to the entry, so that its attributes
  * might be changed by another function.
  */
-comp_dict_item_t* query_dict(comp_dict_t* t, const char* s)
+struct comp_dict_item_t* query_dict(struct comp_dict_t* t, const char* s)
 {
 	int cur_char;
 	for(cur_char=0; s[cur_char]; ++cur_char)
@@ -59,14 +59,14 @@ comp_dict_item_t* query_dict(comp_dict_t* t, const char* s)
 
 	if(t->val == NULL)
 	{
-		t->val = (comp_dict_item_t*)malloc(sizeof(comp_dict_item_t));
+		t->val = (struct comp_dict_item_t*)malloc(sizeof(struct comp_dict_item_t));
 		t->val->token_type = SIMBOLO_INVALIDO;
         t->val->lex = NULL;
 	}
 	return t->val;
 }
 
-comp_dict_item_t* query_dict_noncreate(comp_dict_t* t, const char* s)
+struct comp_dict_item_t* query_dict_noncreate(struct comp_dict_t* t, const char* s)
 {
     int cur_char;
     for (cur_char=0; s[cur_char]; ++cur_char)
@@ -83,7 +83,7 @@ comp_dict_item_t* query_dict_noncreate(comp_dict_t* t, const char* s)
  * Insertion function: given the dictionary, the key and the value, inserts it in the tree
  * or replaces its old value in case the key was already present in the dictionary.
  */
-void insert_in_dict(comp_dict_t* t, const char* s, comp_dict_item_t item)
+void insert_in_dict(struct comp_dict_t* t, const char* s, struct comp_dict_item_t item)
 {
 	*query_dict(t, s) = item;
 }
@@ -91,15 +91,15 @@ void insert_in_dict(comp_dict_t* t, const char* s, comp_dict_item_t item)
 /**
  * Function to abstract the creation of a dictionary value type, in case it gets more complex.
  */
-comp_dict_item_t create_dict_item(int last_line, int token_type)
+struct comp_dict_item_t create_dict_item(int last_line, int token_type)
 {
-	comp_dict_item_t item;
+	struct comp_dict_item_t item;
 	item.last_line = last_line;
 	item.token_type = token_type;
 	return item;
 }
 
-void free_dict_item(comp_dict_item_t* item)
+void free_dict_item(struct comp_dict_item_t* item)
 {
 	if(item == NULL) return;
 	if(item->token_type == SIMBOLO_LITERAL_STRING)

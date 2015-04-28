@@ -11,7 +11,7 @@
 #define SIMBOLO_INVALIDO   	0
 #define NUMBER_SYMBOL_TYPES 6
 
-typedef struct _comp_dict_item_t
+struct comp_dict_item_t
 {
 	int last_line;
 	int token_type;
@@ -24,20 +24,20 @@ typedef struct _comp_dict_item_t
 		char* identificador_val;
 	} token_val;
     char *lex;
-} comp_dict_item_t;
+};
 
 #define TRIE_CHILDREN_SZ 256
-typedef struct _comp_dict_t {
-	comp_dict_item_t* val; //NULL se não for folha
-	struct _comp_dict_t* children[TRIE_CHILDREN_SZ];
-} comp_dict_t;
+struct comp_dict_t {
+	struct comp_dict_item_t* val; //NULL se não for folha
+	struct comp_dict_t* children[TRIE_CHILDREN_SZ];
+};
 
-comp_dict_t* new_full_dict();
-comp_dict_t* new_dict();
-void free_dict(comp_dict_t* t);
-comp_dict_item_t* query_dict(comp_dict_t* t, const char* s);
-comp_dict_item_t* query_dict_noncreate(comp_dict_t* t, const char* s);
-void insert_in_dict(comp_dict_t* t, const char* s, comp_dict_item_t item);
-comp_dict_item_t create_dict_item(int last_line, int token_type);
-void free_dict_item(comp_dict_item_t* item);
+struct comp_dict_t* new_full_dict();
+struct comp_dict_t* new_dict();
+void free_dict(struct comp_dict_t* t);
+struct comp_dict_item_t* query_dict(struct comp_dict_t* t, const char* s);
+struct comp_dict_item_t* query_dict_noncreate(struct comp_dict_t* t, const char* s);
+void insert_in_dict(struct comp_dict_t* t, const char* s, struct comp_dict_item_t item);
+struct comp_dict_item_t create_dict_item(int last_line, int token_type);
+void free_dict_item(struct comp_dict_item_t* item);
 #endif
