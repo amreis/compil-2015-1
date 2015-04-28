@@ -8,6 +8,13 @@
 #define SIMBOLO_LITERAL_BOOL  	5
 #define SIMBOLO_IDENTIFICADOR 	6
 
+#define AMA_INVALID -1
+#define AMA_INT 1
+#define AMA_FLOAT 2
+#define AMA_CHAR 3
+#define AMA_STRING 4
+#define AMA_BOOL 5
+
 #define SIMBOLO_INVALIDO   	0
 #define NUMBER_SYMBOL_TYPES 6
 
@@ -24,6 +31,10 @@ typedef struct _comp_dict_item_t
 		char* identificador_val;
 	} token_val;
     char *lex;
+    struct {
+        int base_type;
+        char isVector;
+    } type;
 } comp_dict_item_t;
 
 #define TRIE_CHILDREN_SZ 256

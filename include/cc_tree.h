@@ -12,7 +12,9 @@
 typedef struct _comp_tree_t {
 	int type;
 	comp_dict_item_t* value;
-	
+
+    int semantic_type;
+
 	struct _comp_tree_t* child[3];
 	int next_type;
 	struct _comp_tree_t* next;

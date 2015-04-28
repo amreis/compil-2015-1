@@ -10,6 +10,11 @@
 #include "main.h"
 #include "cc_ast.h"
 #include "cc_dict.h"
+#include "cc_stack.h"
+
+comp_tree_t* final_ast;
+
+extern comp_stack_t* sym_stack;
 %}
 
 %union {
@@ -64,7 +69,7 @@
 %%
 /* Regras (e ações) da gramática */
 
-full_program: program { $$ = new_tree_0(AST_PROGRAMA); set_list_child_tree($$,0,$1); free_tree($$); } ;
+full_program: program { $$ = new_tree_0(AST_PROGRAMA); set_list_child_tree($$,0,$1); final_ast = $$; /*typecheck(final_ast);*/ } ;
 
 /* A program is a sequence of global variable declarations and function
    declarations. It may also be empty. */
@@ -235,12 +240,12 @@ if_else_no_then	: TK_PR_IF '(' expression ')' TK_PR_THEN command_no_then TK_PR_E
 
 type  : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING ;
 
-literal			: TK_LIT_FALSE 	{ $$ = new_tree_valued(AST_LITERAL, $1); }
-				| TK_LIT_TRUE  	{ $$ = new_tree_valued(AST_LITERAL, $1); }
-				| TK_LIT_CHAR	{ $$ = new_tree_valued(AST_LITERAL, $1); }
-				| TK_LIT_STRING	{ $$ = new_tree_valued(AST_LITERAL, $1); }
-				| TK_LIT_INT	{ $$ = new_tree_valued(AST_LITERAL, $1); }
-				| TK_LIT_FLOAT	{ $$ = new_tree_valued(AST_LITERAL, $1); }
+literal			: TK_LIT_FALSE 	{ $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_BOOL; }
+				| TK_LIT_TRUE  	{ $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_BOOL; }
+				| TK_LIT_CHAR	{ $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_CHAR; }
+				| TK_LIT_STRING	{ $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_STRING; }
+				| TK_LIT_INT	{ $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_INT; }
+				| TK_LIT_FLOAT	{ $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_FLOAT; }
 				;
 init_literal	: TK_LIT_FALSE
 				| TK_LIT_TRUE

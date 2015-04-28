@@ -4,11 +4,13 @@
 #include "cc_dict.h"
 #include <stdlib.h>
 
+
 comp_tree_t* new_tree(int type)
 {
 	comp_tree_t* resp = (comp_tree_t*)malloc(sizeof(comp_tree_t));
 	resp->type = type;
 	resp->value = NULL;
+	resp->semantic_type = AMA_INVALID;
 	resp->child[0] = NULL;
 	resp->child[1] = NULL;
 	resp->child[2] = NULL;

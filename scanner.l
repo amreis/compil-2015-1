@@ -8,9 +8,10 @@
 %{
 #include "parser.h" //arquivo automaticamente gerado pelo bison
 #include "cc_dict.h"
+#include "cc_stack.h"
 
 unsigned long int line_num = 1;
-comp_dict_t* sym_table;
+comp_stack_t* sym_stack;
 %}
 
 INTEGER [[:digit:]]+
@@ -45,7 +46,7 @@ const	return TK_PR_CONST;
 ","|";"|":"|"("|")"|"["|"]"|"{"|"}"|"+"|"-"|"*"|"/"|"<"|">"|"="|"!"|"&"|"$"	{ return yytext[0]; }
 
 true		{
-				comp_dict_item_t* item = query_dict(sym_table->children[SIMBOLO_LITERAL_BOOL], "true");
+				comp_dict_item_t* item = query_dict(sym_stack->item->children[SIMBOLO_LITERAL_BOOL], "true");
 				if (item->token_type == SIMBOLO_INVALIDO)
 				    item->lex = (char*)malloc(yyleng+1);
 				item->last_line = line_num;
@@ -57,7 +58,7 @@ true		{
 			}
 
 false		{
-				comp_dict_item_t* item = query_dict(sym_table->children[SIMBOLO_LITERAL_BOOL], "false");
+				comp_dict_item_t* item = query_dict(sym_stack->item->children[SIMBOLO_LITERAL_BOOL], "false");
 				if (item->token_type == SIMBOLO_INVALIDO)
 				    item->lex = (char*)malloc(yyleng+1);
 				item->last_line = line_num;
@@ -70,7 +71,7 @@ false		{
 
 '.'			{
 				char str[2] = "."; str[0] = yytext[1];
-				comp_dict_item_t* item = query_dict(sym_table->children[SIMBOLO_LITERAL_CHAR], str);
+				comp_dict_item_t* item = query_dict(sym_stack->item->children[SIMBOLO_LITERAL_CHAR], str);
 				if (item->token_type == SIMBOLO_INVALIDO)
 				    item->lex = (char*)malloc(sizeof(str));
 				item->last_line = line_num;
@@ -84,7 +85,7 @@ false		{
 \"[^\"]*\" 		{
 				char str[yyleng];
 				strcpy(str, yytext+1); str[yyleng-2] = '\0';
-				comp_dict_item_t* item = query_dict(sym_table->children[SIMBOLO_LITERAL_STRING], str);
+				comp_dict_item_t* item = query_dict(sym_stack->item->children[SIMBOLO_LITERAL_STRING], str);
 				if(item->token_type == SIMBOLO_INVALIDO)
 				{
 					item->token_val.string_val = (char*)malloc(yyleng);
@@ -99,7 +100,7 @@ false		{
 			}
 
 {INTEGER} 	{
-				comp_dict_item_t* item = query_dict(sym_table->children[SIMBOLO_LITERAL_INT], yytext);
+				comp_dict_item_t* item = query_dict(sym_stack->item->children[SIMBOLO_LITERAL_INT], yytext);
 				if (item->token_type == SIMBOLO_INVALIDO)
 				    item->lex = (char*)malloc(yyleng+1);
 				item->last_line = line_num;
@@ -111,7 +112,7 @@ false		{
 			}
 
 {INTEGER}(\.[[:digit:]]*) {
-				comp_dict_item_t* item = query_dict(sym_table->children[SIMBOLO_LITERAL_FLOAT], yytext);
+				comp_dict_item_t* item = query_dict(sym_stack->item->children[SIMBOLO_LITERAL_FLOAT], yytext);
 				if (item->token_type == SIMBOLO_INVALIDO)
 				    item->lex = (char*)malloc(yyleng+1);
 				item->last_line = line_num;
@@ -122,7 +123,7 @@ false		{
 				return TK_LIT_FLOAT;
 			}
 {ALFABET}{ALFANUM}* {
-				comp_dict_item_t* item = query_dict(sym_table->children[SIMBOLO_IDENTIFICADOR], yytext);
+				comp_dict_item_t* item = query_dict(sym_stack->item->children[SIMBOLO_IDENTIFICADOR], yytext);
 				if(item->token_type == SIMBOLO_INVALIDO)
 				{
 					item->token_val.identificador_val = (char*)malloc(yyleng+1);
