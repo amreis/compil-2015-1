@@ -1,7 +1,7 @@
 #include "cc_misc.h"
 #include "cc_dict.h"
 extern unsigned long int line_num;
-extern struct comp_dict_t* sym_table;
+extern comp_dict_t* sym_table;
 int getLineNumber (void)
 {
   //implemente esta função

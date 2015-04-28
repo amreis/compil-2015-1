@@ -4,9 +4,9 @@
 #include "cc_dict.h"
 #include <stdlib.h>
 
-struct comp_tree_t* new_tree(int type)
+comp_tree_t* new_tree(int type)
 {
-	struct comp_tree_t* resp = (struct comp_tree_t*)malloc(sizeof(struct comp_tree_t));
+	comp_tree_t* resp = (comp_tree_t*)malloc(sizeof(comp_tree_t));
 	resp->type = type;
 	resp->value = NULL;
 	resp->child[0] = NULL;
@@ -18,33 +18,33 @@ struct comp_tree_t* new_tree(int type)
 	return resp;
 }
 
-struct comp_tree_t* new_tree_valued(int type, struct comp_dict_item_t* value)
+comp_tree_t* new_tree_valued(int type, comp_dict_item_t* value)
 {
-	struct comp_tree_t* resp = new_tree(type);
+	comp_tree_t* resp = new_tree(type);
 	resp->value = value;
     gv_declare(type, resp, value->lex);
 	return resp;
 }
 
-struct comp_tree_t* new_tree_0(int type)
+comp_tree_t* new_tree_0(int type)
 {
-	struct comp_tree_t* resp = new_tree(type);
+	comp_tree_t* resp = new_tree(type);
     gv_declare(type, resp, NULL);
 	return resp;
 }
 
-struct comp_tree_t* new_tree_1(int type, struct comp_tree_t* child0)
+comp_tree_t* new_tree_1(int type, comp_tree_t* child0)
 {
-	struct comp_tree_t* resp = new_tree(type);
+	comp_tree_t* resp = new_tree(type);
 	resp->child[0] = child0;
     gv_declare(type, resp, NULL);
     if(child0 != NULL) gv_connect(resp, child0);
 	return resp;
 }
 
-struct comp_tree_t* new_tree_2(int type, struct comp_tree_t* child0, struct comp_tree_t* child1)
+comp_tree_t* new_tree_2(int type, comp_tree_t* child0, comp_tree_t* child1)
 {
-	struct comp_tree_t* resp = new_tree(type);
+	comp_tree_t* resp = new_tree(type);
 	resp->child[0] = child0;
 	resp->child[1] = child1;
     gv_declare(type, resp, NULL);
@@ -53,9 +53,9 @@ struct comp_tree_t* new_tree_2(int type, struct comp_tree_t* child0, struct comp
 	return resp;
 }
 
-struct comp_tree_t* new_tree_3(int type, struct comp_tree_t* child0, struct comp_tree_t* child1, struct comp_tree_t* child2)
+comp_tree_t* new_tree_3(int type, comp_tree_t* child0, comp_tree_t* child1, comp_tree_t* child2)
 {
-	struct comp_tree_t* resp = new_tree(type);
+	comp_tree_t* resp = new_tree(type);
 	resp->child[0] = child0;
 	resp->child[1] = child1;
 	resp->child[2] = child2;
@@ -66,7 +66,7 @@ struct comp_tree_t* new_tree_3(int type, struct comp_tree_t* child0, struct comp
 	return resp;
 }
 
-void free_tree(struct comp_tree_t* t)
+void free_tree(comp_tree_t* t)
 {
 	int i;
 	for(i=0;i<3;++i)
@@ -77,7 +77,7 @@ void free_tree(struct comp_tree_t* t)
 	free(t);
 }
 
-struct comp_tree_t* append_next_tree(struct comp_tree_t* t, int next_type, struct comp_tree_t* next)
+comp_tree_t* append_next_tree(comp_tree_t* t, int next_type, comp_tree_t* next)
 {
 	if(t == NULL)
 		return next;
@@ -93,7 +93,7 @@ struct comp_tree_t* append_next_tree(struct comp_tree_t* t, int next_type, struc
 		return t;
 }
 
-void set_list_child_tree(struct comp_tree_t* t, int child_index, struct comp_tree_t* last_child)
+void set_list_child_tree(comp_tree_t* t, int child_index, comp_tree_t* last_child)
 {
 	if(last_child != NULL)
 	{

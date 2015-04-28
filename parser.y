@@ -9,11 +9,12 @@
 #include <stdio.h>
 #include "main.h"
 #include "cc_ast.h"
+#include "cc_dict.h"
 %}
 
 %union {
-	struct comp_dict_item_t* valor_simbolo_lexico;
-	struct comp_tree_t* ast;
+	struct _comp_dict_item_t* valor_simbolo_lexico;
+	struct _comp_tree_t* ast;
 }
 
 /* Declaração dos tokens da linguagem */
