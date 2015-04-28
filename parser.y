@@ -64,34 +64,34 @@
 %%
 /* Regras (e ações) da gramática */
 
-full_program: program { $$ = new_tree_0(AST_PROGRAMA); set_list_child_tree($$,0,$1); free_tree($$); } ;
+full_program	:program { $$ = new_tree_0(AST_PROGRAMA); set_list_child_tree($$,0,$1); free_tree($$); } ;
 
 /* A program is a sequence of global variable declarations and function
    declarations. It may also be empty. */
-program  : program global_var_decl ';' { $$ = $1; }
-          | program gen_func_decl { $$ = append_next_tree($1, NEXT_FUNCTION, $2); }
-          | { $$ = NULL; }
+program	: program global_var_decl ';' { $$ = $1; }
+		| program gen_func_decl { $$ = append_next_tree($1, NEXT_FUNCTION, $2); }
+		| { $$ = NULL; }
           ;
 /* A global var declaration may be static, or a vector. Or just a simple one. */
 global_var_decl : static_var_decl
-                | simple_var_decl
-                | vector_var_decl
-                ;
+				| simple_var_decl
+				| vector_var_decl
+				;
 /* A static variable is declared with the keyword 'static' in front of it. */
 static_var_decl : TK_PR_STATIC simple_var_decl
-                | TK_PR_STATIC vector_var_decl
-                ;
+				| TK_PR_STATIC vector_var_decl
+				;
 /* A vector declaration has its identifier followed by [N], where N is the size. */
-vector_var_decl : simple_var_decl '[' TK_LIT_INT ']' ;
+vector_var_decl	: simple_var_decl '[' TK_LIT_INT ']' ;
 
 /* A simple declaration needs only the type and the identifier. */
-simple_var_decl : type TK_IDENTIFICADOR ;
+simple_var_decl	: type TK_IDENTIFICADOR ;
 
 /** FUNCTIONS */
 /* A function can be static or not. */
-gen_func_decl   : static_func_decl { $$ = $1; }
-                | simple_func_decl { $$ = $1; }
-                ;
+gen_func_decl	: static_func_decl { $$ = $1; }
+				| simple_func_decl { $$ = $1; }
+				;
 
 /* If it's static, its declaration is preceded by the keyword 'static' */
 static_func_decl: TK_PR_STATIC simple_func_decl { $$ = $2; }
@@ -103,40 +103,40 @@ simple_func_decl: type TK_IDENTIFICADOR '(' params_list ')' '{' command_list '}'
 				;
 
 /* The argument list may be empty or not */
-params_list     : nonempty_params_list
-                | ;
+params_list	: nonempty_params_list
+			| ;
 
 /* A list of parameters that is not empty is either a single parameter or a parameter 
    preceded by another non-empty list of arguments and a comma */
 nonempty_params_list: param | nonempty_params_list ',' param ;
 
 /* A parameter is like a variable declaration, but it might be const */
-param           : TK_PR_CONST simple_var_decl | simple_var_decl ;
+param			: TK_PR_CONST simple_var_decl | simple_var_decl ;
 
-command_block   : '{' command_list '}' { $$ = new_tree_0(AST_BLOCO); set_list_child_tree($$,0,$2); }
+command_block	: '{' command_list '}' { $$ = new_tree_0(AST_BLOCO); set_list_child_tree($$,0,$2); }
 				;
 command_list	: command { $$ = $1; }
-                | command_list ';' command { $$ = append_next_tree($1, NEXT_COMMAND, $3); }
-                ;
-
-
-command         : flow_control { $$ = $1; }
-				| simple_command { $$ = $1; }
-				| invalid_stmt { $$ = NULL; }
+				| command_list ';' command { $$ = append_next_tree($1, NEXT_COMMAND, $3); }
 				;
-simple_command	: local_var_decl { $$ = NULL; }
-                | assignment { $$ = $1; }
-                | input_statement { $$ = $1; }
-                | output_statement { $$ = $1; }
-                | return_statement { $$ = $1; }
-                | command_block { $$ = $1; }
-                | /*empty*/ { $$ = NULL; }
-                | func_call { $$ = $1; }
-                ;
-invalid_stmt : gen_func_decl { yyerror("Illegal function declaration ending"); return SINTATICA_ERRO; }
-             | TK_PR_RETURN { yyerror("Return with no value"); return SINTATICA_ERRO; }
-             | TK_PR_OUTPUT { yyerror("Output without values"); return SINTATICA_ERRO; }
-             ;
+
+
+command			: flow_control 		{ $$ = $1; }
+				| simple_command 	{ $$ = $1; }
+				| invalid_stmt 		{ $$ = NULL; }
+				;
+simple_command	: local_var_decl 	{ $$ = NULL; }
+				| assignment 		{ $$ = $1; }
+				| input_statement 	{ $$ = $1; }
+				| output_statement 	{ $$ = $1; }
+				| return_statement 	{ $$ = $1; }
+				| command_block 	{ $$ = $1; }
+				| /*empty*/ 		{ $$ = NULL; }
+				| func_call 		{ $$ = $1; }
+				;
+invalid_stmt	: gen_func_decl { yyerror("Illegal function declaration ending"); return SINTATICA_ERRO; }
+				| TK_PR_RETURN { yyerror("Return with no value"); return SINTATICA_ERRO; }
+				| TK_PR_OUTPUT { yyerror("Output without values"); return SINTATICA_ERRO; }
+				;
 // DECLARAÇÃO DE VARIÁVEL LOCAL
 local_var_decl	: gen_local_var
 				| gen_local_var TK_OC_LE TK_IDENTIFICADOR
@@ -144,7 +144,7 @@ local_var_decl	: gen_local_var
 				;
 gen_local_var	: simple_local_var | static_local_var ;
 simple_local_var: type TK_IDENTIFICADOR 
-				| TK_PR_CONST type TK_IDENTIFICADOR 				
+				| TK_PR_CONST type TK_IDENTIFICADOR
 				;
 static_local_var: TK_PR_STATIC simple_local_var
 				;
@@ -193,13 +193,12 @@ expression		: simple_expression { $$ = $1;}
 				| '-' simple_expression %prec INVERSION { $$ = new_tree_1(AST_ARIM_INVERSAO, $2);}
 				| '!' simple_expression { $$ = new_tree_1(AST_LOGICO_COMP_NEGACAO, $2);}
 				;
-simple_expression :
-			    expression_leaf { $$ = $1;}
-				| '(' expression ')' { $$ = $2;} 
-				;
-expression_leaf : TK_IDENTIFICADOR	{ $$ = new_tree_valued(AST_IDENTIFICADOR, $1); }
+simple_expression	: expression_leaf { $$ = $1;}
+					| '(' expression ')' { $$ = $2;} 
+					;
+expression_leaf : TK_IDENTIFICADOR { $$ = new_tree_valued(AST_IDENTIFICADOR, $1); }
 				| TK_IDENTIFICADOR '[' expression ']' { $$ = new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3); }
-				| literal			{ $$ = $1; }
+				| literal { $$ = $1; }
 				| func_call
 				;
 
@@ -207,25 +206,25 @@ expression_leaf : TK_IDENTIFICADOR	{ $$ = new_tree_valued(AST_IDENTIFICADOR, $1)
 
 /** CONTROLE DE FLUXO **/
 
-flow_control	: do_while { $$ = $1;}
-				| while { $$ = $1;}
-				| if_then { $$ = $1;}
-				| if_else { $$ = $1;}
+flow_control	: do_while	{ $$ = $1;}
+				| while 	{ $$ = $1;}
+				| if_then 	{ $$ = $1;}
+				| if_else 	{ $$ = $1;}
 				;
-do_while        : TK_PR_DO command ';' TK_PR_WHILE '(' expression ')' { $$ = new_tree_2(AST_DO_WHILE, $2, $6);}
+do_while		: TK_PR_DO command ';' TK_PR_WHILE '(' expression ')' { $$ = new_tree_2(AST_DO_WHILE, $2, $6);}
 				| TK_PR_DO command_block TK_PR_WHILE '(' expression ')' { $$ = new_tree_2(AST_DO_WHILE, $2, $5);}
 				;
-while           : TK_PR_WHILE '(' expression ')' TK_PR_DO command { $$ = new_tree_2(AST_WHILE_DO, $3, $6);}
+while			: TK_PR_WHILE '(' expression ')' TK_PR_DO command { $$ = new_tree_2(AST_WHILE_DO, $3, $6);}
 				; 
 if_then			: TK_PR_IF '(' expression ')' TK_PR_THEN command { $$ = new_tree_2(AST_IF_ELSE, $3, $6);}
 				;
 if_else			: TK_PR_IF '(' expression ')' TK_PR_THEN command_no_then TK_PR_ELSE command { $$ = new_tree_3(AST_IF_ELSE, $3, $6, $8);}
 				;
-command_no_then	: do_while { $$ = $1;}
-				| while_no_then { $$ = $1;}
-				| if_else_no_then { $$ = $1;}
-				| simple_command { $$ = $1;}
-                ;
+command_no_then	: do_while			{ $$ = $1;}
+				| while_no_then		{ $$ = $1;}
+				| if_else_no_then	{ $$ = $1;}
+				| simple_command	{ $$ = $1;}
+				;
 while_no_then	: TK_PR_WHILE '(' expression ')' TK_PR_DO command_no_then { $$ = new_tree_2(AST_WHILE_DO, $3, $6);}
 				;
 if_else_no_then	: TK_PR_IF '(' expression ')' TK_PR_THEN command_no_then TK_PR_ELSE command_no_then { $$ = new_tree_3(AST_IF_ELSE, $3, $6, $8);}
