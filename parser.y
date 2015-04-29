@@ -123,15 +123,20 @@ static_func_decl: TK_PR_STATIC simple_func_decl { $$ = $2; }
 
 /* A function declaration needs a return type, an identifier and an (possibly
    empty) parameter list, followed by the function body surrounded by braces */
-simple_func_decl: type TK_IDENTIFICADOR '(' params_list ')' {
-                    if ($2->type.base != AMA_INVALID) {
-                        exit(IKS_ERROR_DECLARED);
-                    }
-                    $2->type.base = $1;
-                    $2->type.is_function = 1;
-                    $2->type.n_args = $4->length;
-                    $2->type.arg_types = param_list_to_ary($4);
-                    } '{' command_list '}' { $$ = new_tree_valued(AST_FUNCAO, $2); set_list_child_tree($$,0,$8); }
+simple_func_decl: type TK_IDENTIFICADOR '(' params_list ')' 
+                    {
+                        if ($2->type.base != AMA_INVALID) {
+                            exit(IKS_ERROR_DECLARED);
+                        }
+                        $2->type.base = $1;
+                        $2->type.is_function = 1;
+                        $2->type.n_args = $4->length;
+                        $2->type.arg_types = param_list_to_ary($4);
+                    } '{' 
+                    {
+                        sym_stack = push_new_dict(sym_stack);
+                    } command_list '}'
+                    { sym_stack = pop_stack(sym_stack); } { $$ = new_tree_valued(AST_FUNCAO, $2); set_list_child_tree($$,0,$9); }
 				;
 
 /* The argument list may be empty or not */
