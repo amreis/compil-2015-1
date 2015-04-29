@@ -15,6 +15,8 @@
 #define AMA_STRING 4
 #define AMA_BOOL 5
 
+typedef char bool;
+
 #define SIMBOLO_INVALIDO   	0
 #define NUMBER_SYMBOL_TYPES 6
 
@@ -24,7 +26,7 @@ typedef struct _comp_dict_item_t
 	int token_type;
 	union {
 		int int_val;
-		float float_val;
+		double float_val;
 		char char_val;
 		char* string_val;
 		int bool_val;
@@ -33,7 +35,10 @@ typedef struct _comp_dict_item_t
     char *lex;
     struct {
         int base;
-        char isVector;
+        bool is_vector;
+        bool is_function;
+        int n_args;
+        int *arg_types;
     } type;
 } comp_dict_item_t;
 

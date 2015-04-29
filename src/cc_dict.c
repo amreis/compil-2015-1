@@ -63,7 +63,10 @@ comp_dict_item_t* query_dict(comp_dict_t* t, const char* s)
 		t->val->token_type = SIMBOLO_INVALIDO;
         t->val->lex = NULL;
         t->val->type.base = AMA_INVALID;
-        t->val->type.isVector = 0;
+        t->val->type.is_vector = 0;
+        t->val->type.is_function = 0;
+        t->val->type.n_args = -1;
+        t->val->type.arg_types = NULL;
 	}
 	return t->val;
 }
@@ -110,5 +113,7 @@ void free_dict_item(comp_dict_item_t* item)
 		free(item->token_val.identificador_val);
     if (item->lex != NULL)
         free(item->lex);
+    if (item->type.arg_types != NULL)
+        free(item->type.arg_types);
 	free(item);
 }

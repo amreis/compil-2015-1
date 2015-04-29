@@ -11,6 +11,9 @@
 #include "cc_ast.h"
 #include "cc_dict.h"
 #include "cc_stack.h"
+#include "cc_param_list.h"
+#include "errors.h"
+#include <stdlib.h>
 
 comp_tree_t* final_ast;
 
@@ -22,6 +25,8 @@ extern comp_stack_t* sym_stack;
 	struct _comp_tree_t* ast;
 	int type;
 	struct _comp_dict_item_t* dict_entry;
+	struct _comp_param_list_t* param_list;
+	struct _comp_param_list_item_t* param_list_item;
 }
 
 /* Declaração dos tokens da linguagem */
@@ -68,6 +73,8 @@ extern comp_stack_t* sym_stack;
 
 %type<type> type
 %type<dict_entry> simple_var_decl vector_var_decl
+%type<param_list> params_list nonempty_params_list
+%type<param_list_item> param
 %error-verbose
 
 %%
@@ -92,12 +99,13 @@ static_var_decl : TK_PR_STATIC simple_var_decl
 				| TK_PR_STATIC vector_var_decl
 				;
 /* A vector declaration has its identifier followed by [N], where N is the size. */
-vector_var_decl	: simple_var_decl '[' TK_LIT_INT ']' { $1->type.isVector = 1; $$ = $1; } ;
+vector_var_decl	: simple_var_decl '[' TK_LIT_INT ']' { $1->type.is_vector = 1; $$ = $1; } ;
 
 /* A simple declaration needs only the type and the identifier. */
 simple_var_decl	: type TK_IDENTIFICADOR
-                  { if ($2->type.base != AMA_INVALID) {
-                        printf("Variable already declared!\n");
+                  {
+                    if ($2->type.base != AMA_INVALID) {
+                        exit(IKS_ERROR_DECLARED);
                     }
                     $2->type.base = $1;
                     $$ = $2;
@@ -115,19 +123,29 @@ static_func_decl: TK_PR_STATIC simple_func_decl { $$ = $2; }
 
 /* A function declaration needs a return type, an identifier and an (possibly
    empty) parameter list, followed by the function body surrounded by braces */
-simple_func_decl: type TK_IDENTIFICADOR '(' params_list ')' '{' command_list '}' { $$ = new_tree_valued(AST_FUNCAO, $2); set_list_child_tree($$,0,$7); }
+simple_func_decl: type TK_IDENTIFICADOR '(' params_list ')' {
+                    if ($2->type.base != AMA_INVALID) {
+                        exit(IKS_ERROR_DECLARED);
+                    }
+                    $2->type.base = $1;
+                    $2->type.is_function = 1;
+                    $2->type.n_args = $4->length;
+                    $2->type.arg_types = param_list_to_ary($4);
+                    } '{' command_list '}' { $$ = new_tree_valued(AST_FUNCAO, $2); set_list_child_tree($$,0,$8); }
 				;
 
 /* The argument list may be empty or not */
-params_list	: nonempty_params_list
-			| ;
+params_list	: nonempty_params_list { $$ = $1; }
+			| { $$ = NULL; };
 
 /* A list of parameters that is not empty is either a single parameter or a parameter 
    preceded by another non-empty list of arguments and a comma */
-nonempty_params_list: param | nonempty_params_list ',' param ;
+nonempty_params_list: param { $$ = new_param_list(); append_param_list($$, $1->param_type); } 
+                    | nonempty_params_list ',' param { append_param_list($1, $3->param_type); $$ = $1; };
 
 /* A parameter is like a variable declaration, but it might be const */
-param			: TK_PR_CONST simple_var_decl | simple_var_decl ;
+param			: TK_PR_CONST simple_var_decl { $$ = new_param_list_item(); $$->param_type = $2->type.base; }
+                | simple_var_decl { $$ = new_param_list_item(); $$->param_type = $1->type.base; } ;
 
 command_block	: '{' { sym_stack = push_new_dict(sym_stack); } command_list '}' { sym_stack = pop_stack(sym_stack); } { $$ = new_tree_0(AST_BLOCO); set_list_child_tree($$,0,$3); }
 				;
