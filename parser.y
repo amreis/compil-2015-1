@@ -1,4 +1,4 @@
-/*
+    /*
   Galatasaralister
 
   Alister Machado dos Reis
@@ -20,6 +20,8 @@ extern comp_stack_t* sym_stack;
 %union {
     struct _comp_dict_item_t* valor_simbolo_lexico;
 	struct _comp_tree_t* ast;
+	int type;
+	struct _comp_dict_item_t* dict_entry;
 }
 
 /* Declaração dos tokens da linguagem */
@@ -64,6 +66,8 @@ extern comp_stack_t* sym_stack;
 %type<ast> return_statement assignment input_statement output_statement
 %type<ast> func_call args_list output_list program full_program gen_func_decl static_func_decl simple_func_decl
 
+%type<type> type
+%type<dict_entry> simple_var_decl vector_var_decl
 %error-verbose
 
 %%
@@ -88,10 +92,16 @@ static_var_decl : TK_PR_STATIC simple_var_decl
 				| TK_PR_STATIC vector_var_decl
 				;
 /* A vector declaration has its identifier followed by [N], where N is the size. */
-vector_var_decl	: simple_var_decl '[' TK_LIT_INT ']' ;
+vector_var_decl	: simple_var_decl '[' TK_LIT_INT ']' { $1->type.isVector = 1; $$ = $1; } ;
 
 /* A simple declaration needs only the type and the identifier. */
-simple_var_decl	: type TK_IDENTIFICADOR ;
+simple_var_decl	: type TK_IDENTIFICADOR
+                  { if ($2->type.base != AMA_INVALID) {
+                        printf("Variable already declared!\n");
+                    }
+                    $2->type.base = $1;
+                    $$ = $2;
+                  };
 
 /** FUNCTIONS */
 /* A function can be static or not. */
@@ -238,7 +248,11 @@ if_else_no_then	: TK_PR_IF '(' expression ')' TK_PR_THEN command_no_then TK_PR_E
 
 /** TIPOS AUXILIARES **/
 
-type  : TK_PR_INT | TK_PR_FLOAT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING ;
+type  : TK_PR_INT { $$ = AMA_INT; }
+        | TK_PR_FLOAT { $$ = AMA_FLOAT; }
+        | TK_PR_BOOL { $$ = AMA_BOOL; }
+        | TK_PR_CHAR { $$ = AMA_CHAR; }
+        | TK_PR_STRING { $$ = AMA_STRING; };
 
 literal			: TK_LIT_FALSE 	{ $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_BOOL; }
 				| TK_LIT_TRUE  	{ $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_BOOL; }
