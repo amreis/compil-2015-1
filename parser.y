@@ -119,7 +119,7 @@ nonempty_params_list: param | nonempty_params_list ',' param ;
 /* A parameter is like a variable declaration, but it might be const */
 param			: TK_PR_CONST simple_var_decl | simple_var_decl ;
 
-command_block	: '{' command_list '}' { $$ = new_tree_0(AST_BLOCO); set_list_child_tree($$,0,$2); }
+command_block	: '{' { sym_stack = push_new_dict(sym_stack); } command_list '}' { sym_stack = pop_stack(sym_stack); } { $$ = new_tree_0(AST_BLOCO); set_list_child_tree($$,0,$3); }
 				;
 command_list	: command { $$ = $1; }
 				| command_list ';' command { $$ = append_next_tree($1, NEXT_COMMAND, $3); }

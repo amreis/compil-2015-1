@@ -62,6 +62,8 @@ comp_dict_item_t* query_dict(comp_dict_t* t, const char* s)
 		t->val = (comp_dict_item_t*)malloc(sizeof(comp_dict_item_t));
 		t->val->token_type = SIMBOLO_INVALIDO;
         t->val->lex = NULL;
+        t->val->type.base = AMA_INVALID;
+        t->val->type.isVector = 0;
 	}
 	return t->val;
 }

@@ -32,7 +32,7 @@ typedef struct _comp_dict_item_t
 	} token_val;
     char *lex;
     struct {
-        int base_type;
+        int base;
         char isVector;
     } type;
 } comp_dict_item_t;
