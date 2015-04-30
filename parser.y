@@ -18,6 +18,9 @@
 comp_tree_t* final_ast;
 
 extern comp_stack_t* sym_stack;
+// Since we don't allow functions to be declared inside functions, a single
+// pointer does the trick, so that we know which function we are in.
+comp_dict_item_t* current_function = NULL;
 %}
 
 %union {
@@ -125,18 +128,21 @@ static_func_decl: TK_PR_STATIC simple_func_decl { $$ = $2; }
    empty) parameter list, followed by the function body surrounded by braces */
 simple_func_decl: type TK_IDENTIFICADOR '(' params_list ')' 
                     {
+
                         if ($2->type.base != AMA_INVALID) {
                             exit(IKS_ERROR_DECLARED);
                         }
                         $2->type.base = $1;
                         $2->type.is_function = 1;
-                        $2->type.n_args = $4->length;
+                        $2->type.n_args = ($4 == NULL) ? 0 : $4->length;
+
                         $2->type.arg_types = param_list_to_ary($4);
+                        current_function = $2;
                     } '{' 
                     {
                         sym_stack = push_new_dict(sym_stack);
                     } command_list '}'
-                    { sym_stack = pop_stack(sym_stack); } { $$ = new_tree_valued(AST_FUNCAO, $2); set_list_child_tree($$,0,$9); }
+                    { sym_stack = pop_stack(sym_stack); current_function = NULL; } { $$ = new_tree_valued(AST_FUNCAO, $2); set_list_child_tree($$,0,$9); }
 				;
 
 /* The argument list may be empty or not */
@@ -206,8 +212,60 @@ return_statement: TK_PR_RETURN expression { $$ = new_tree_1(AST_RETURN, $2);}
 				;
 
 // CHAMADA DE FUNÇÃO
-func_call		: TK_IDENTIFICADOR '(' ')' { $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1)); }
-				| TK_IDENTIFICADOR '(' args_list ')' { $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1)); set_list_child_tree($$,1,$3); }
+func_call		: TK_IDENTIFICADOR '(' ')'
+                    {
+                        $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1));
+
+                        if ($1->type.base == AMA_INVALID)
+                            exit(IKS_ERROR_UNDECLARED);
+                        else if ($1->type.is_vector)
+                            exit(IKS_ERROR_VECTOR);
+                        else if (!$1->type.is_function)
+                            exit(IKS_ERROR_VARIABLE);
+                        else if ($1->type.n_args != 0)
+                            exit(IKS_ERROR_MISSING_ARGS);
+                        else
+                        {
+                            $$->semantic_type = $1->type.base;
+                        }
+                    }
+				| TK_IDENTIFICADOR '(' args_list ')' 
+				    {
+				        $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1)); set_list_child_tree($$,1,$3);
+				        if ($1->type.base == AMA_INVALID)
+                            exit(IKS_ERROR_UNDECLARED);
+                        else if ($1->type.is_vector)
+                            exit(IKS_ERROR_VECTOR);
+                        else if (!$1->type.is_function)
+                            exit(IKS_ERROR_VARIABLE);
+                        else
+                        {
+                            int n = 0;
+                            comp_tree_t* args = $3;
+                            while (args != NULL)
+                            {
+                                n++;
+                                if (args->next_type == NEXT_ARGUMENT)
+                                    args = args->next;
+                                else break;
+                            }
+                            if (n < $1->type.n_args)
+                                exit(IKS_ERROR_MISSING_ARGS);
+                            else if (n > $1->type.n_args)
+                                yyerror("Too many arguments to function"), exit(IKS_ERROR_EXCESS_ARGS);
+                            else {
+                                args = $3;
+                                n = 0;
+                                while (args != NULL && args->next_type == NEXT_ARGUMENT)
+                                {
+                                    if (args->semantic_type != $1->type.arg_types[n])
+                                        exit(IKS_ERROR_WRONG_TYPE);
+                                    n++; args = args->next;
+                                }
+                            }
+                        }
+                        $$->semantic_type = $1->type.base;
+			        }
 				;
 args_list		: expression { $$ = $1; }
 				| args_list ',' expression { $$ = append_next_tree($1, NEXT_ARGUMENT, $3); }
@@ -235,7 +293,15 @@ expression		: simple_expression { $$ = $1;}
 simple_expression	: expression_leaf { $$ = $1;}
 					| '(' expression ')' { $$ = $2;} 
 					;
-expression_leaf : TK_IDENTIFICADOR { $$ = new_tree_valued(AST_IDENTIFICADOR, $1); }
+expression_leaf : TK_IDENTIFICADOR
+                    {
+                        $$ = new_tree_valued(AST_IDENTIFICADOR, $1);
+                        if ($1->type.base == AMA_INVALID)
+                        {
+                            exit(IKS_ERROR_UNDECLARED);
+                        }
+                        else $$->semantic_type = $1->type.base;
+                    }
 				| TK_IDENTIFICADOR '[' expression ']' { $$ = new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3); }
 				| literal { $$ = $1; }
 				| func_call

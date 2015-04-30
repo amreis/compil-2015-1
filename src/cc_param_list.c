@@ -28,6 +28,7 @@ comp_param_list_t* append_param_list(comp_param_list_t* l, int param_type)
 
 void free_param_list(comp_param_list_t *l)
 {
+	if (l == NULL) return;
     comp_param_list_item_t* s = l->start;
     if (s == NULL) return;
     
@@ -50,6 +51,7 @@ comp_param_list_item_t* new_param_list_item()
 
 int* param_list_to_ary(comp_param_list_t* list)
 {
+	if (list == NULL) return NULL;
     int* array = (int*) malloc(list->length * sizeof(int));
     comp_param_list_item_t* start;
     int i = 0;

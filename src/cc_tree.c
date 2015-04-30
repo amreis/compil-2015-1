@@ -97,7 +97,9 @@ comp_tree_t* append_next_tree(comp_tree_t* t, int next_type, comp_tree_t* next)
 		t->next_type = next_type;
 		t->next = next;
 		next->first = t->first;
+		#if AVALIACAO_ETAPA_3
 		gv_connect(t, next);
+		#endif
 		return next;
 	}
 	else
