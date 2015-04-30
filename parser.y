@@ -275,21 +275,218 @@ args_list		: expression { $$ = $1; }
 
 /** EXPRESSÕES LÓGICAS E ARITMÉTICAS **/
 expression		: simple_expression { $$ = $1;}
-				| expression '+' expression { $$ = new_tree_2(AST_ARIM_SOMA, $1, $3); coercion($1, $3);}
-				| expression '-' expression { $$ = new_tree_2(AST_ARIM_SUBTRACAO, $1, $3);}
-				| expression '*' expression { $$ = new_tree_2(AST_ARIM_MULTIPLICACAO, $1, $3);}
-				| expression '/' expression { $$ = new_tree_2(AST_ARIM_DIVISAO, $1, $3);}
-				| expression '<' expression { $$ = new_tree_2(AST_LOGICO_COMP_L, $1, $3);}
-				| expression '>' expression { $$ = new_tree_2(AST_LOGICO_COMP_G, $1, $3);}
-				| expression TK_OC_LE expression { $$ = new_tree_2(AST_LOGICO_COMP_LE, $1, $3);}
-				| expression TK_OC_GE expression { $$ = new_tree_2(AST_LOGICO_COMP_GE, $1, $3);}
-				| expression TK_OC_EQ expression { $$ = new_tree_2(AST_LOGICO_COMP_IGUAL, $1, $3);}
-				| expression TK_OC_NE expression { $$ = new_tree_2(AST_LOGICO_COMP_DIF, $1, $3);}
-				| expression TK_OC_AND expression { $$ = new_tree_2(AST_LOGICO_E, $1, $3);}
-				| expression TK_OC_OR expression { $$ = new_tree_2(AST_LOGICO_OU, $1, $3);}
+				| expression '+' expression
+					{
+						$$ = new_tree_2(AST_ARIM_SOMA, $1, $3);
+						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
+						{
+							exit(IKS_ERROR_CHAR_TO_X);
+						}
+						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
+						{
+							exit(IKS_ERROR_STRING_TO_X);
+						}
+						else
+						{
+							coercion($1, $3);
+							$$->semantic_type = $1->semantic_type;
+						}
+					}
+				| expression '-' expression
+					{
+						$$ = new_tree_2(AST_ARIM_SUBTRACAO, $1, $3);
+						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
+						{
+							exit(IKS_ERROR_CHAR_TO_X);
+						}
+						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
+						{
+							exit(IKS_ERROR_STRING_TO_X);
+						}
+						else
+						{
+							coercion($1, $3);
+							$$->semantic_type = $1->semantic_type;
+						}
+					}
+				| expression '*' expression
+					{
+						$$ = new_tree_2(AST_ARIM_MULTIPLICACAO, $1, $3);
+						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
+						{
+							exit(IKS_ERROR_CHAR_TO_X);
+						}
+						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
+						{
+							exit(IKS_ERROR_STRING_TO_X);
+						}
+						else
+						{
+							coercion($1, $3);
+							$$->semantic_type = $1->semantic_type;
+						}
+					}
+				| expression '/' expression
+					{
+						$$ = new_tree_2(AST_ARIM_DIVISAO, $1, $3);
+						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
+						{
+							exit(IKS_ERROR_CHAR_TO_X);
+						}
+						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
+						{
+							exit(IKS_ERROR_STRING_TO_X);
+						}
+						else
+						{
+
+							coercion($1, $3);
+							$$->semantic_type = $1->semantic_type;
+						}
+					}
+				| expression '<' expression
+					{
+						$$ = new_tree_2(AST_LOGICO_COMP_L, $1, $3);
+						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
+						{
+							exit(IKS_ERROR_CHAR_TO_X);
+						}
+						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
+						{
+							exit(IKS_ERROR_STRING_TO_X);
+						}
+						else if ($1->semantic_type == AMA_BOOL || $3->semantic_type == AMA_BOOL)
+						{
+							exit(IKS_ERROR_WRONG_TYPE);
+						}
+						else
+						{
+							coercion($1, $3);
+							$$->semantic_type = $1->semantic_type;
+						}
+					}
+				| expression '>' expression
+					{
+						$$ = new_tree_2(AST_LOGICO_COMP_G, $1, $3);
+						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
+						{
+							exit(IKS_ERROR_CHAR_TO_X);
+						}
+						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
+						{
+							exit(IKS_ERROR_STRING_TO_X);
+						}
+						else if ($1->semantic_type == AMA_BOOL || $3->semantic_type == AMA_BOOL)
+						{
+							exit(IKS_ERROR_WRONG_TYPE);
+						}
+						else
+						{
+							coercion($1, $3);
+							$$->semantic_type = $1->semantic_type;
+						}
+					}
+				| expression TK_OC_LE expression
+					{
+						$$ = new_tree_2(AST_LOGICO_COMP_LE, $1, $3);
+						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
+						{
+							exit(IKS_ERROR_CHAR_TO_X);
+						}
+						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
+						{
+							exit(IKS_ERROR_STRING_TO_X);
+						}
+						else if ($1->semantic_type == AMA_BOOL || $3->semantic_type == AMA_BOOL)
+						{
+							exit(IKS_ERROR_WRONG_TYPE);
+						}
+						else
+						{
+							coercion($1, $3);
+							$$->semantic_type = $1->semantic_type;
+						}
+					}
+				| expression TK_OC_GE expression
+					{
+						$$ = new_tree_2(AST_LOGICO_COMP_GE, $1, $3);
+						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
+						{
+							exit(IKS_ERROR_CHAR_TO_X);
+						}
+						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
+						{
+							exit(IKS_ERROR_STRING_TO_X);
+						}
+						else if ($1->semantic_type == AMA_BOOL || $3->semantic_type == AMA_BOOL)
+						{
+							exit(IKS_ERROR_WRONG_TYPE);
+						}
+						else
+						{
+							coercion($1, $3);
+							$$->semantic_type = $1->semantic_type;
+						}
+					}
+				| expression TK_OC_EQ expression
+					{
+						$$ = new_tree_2(AST_LOGICO_COMP_IGUAL, $1, $3);
+						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
+						{
+							exit(IKS_ERROR_CHAR_TO_X);
+						}
+						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
+						{
+							exit(IKS_ERROR_STRING_TO_X);
+						}
+						else
+						{
+							coercion($1, $3);
+							$$->semantic_type = $1->semantic_type;
+						}
+					}
+				| expression TK_OC_NE expression
+					{
+						$$ = new_tree_2(AST_LOGICO_COMP_DIF, $1, $3);
+						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
+						{
+							exit(IKS_ERROR_CHAR_TO_X);
+						}
+						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
+						{
+							exit(IKS_ERROR_STRING_TO_X);
+						}
+						else
+						{
+							coercion($1, $3);
+							$$->semantic_type = $1->semantic_type;
+						}
+					}
+				| expression TK_OC_AND expression
+					{
+						$$ = new_tree_2(AST_LOGICO_E, $1, $3);
+						if ($1->semantic_type != AMA_BOOL || $3->semantic_type != AMA_BOOL)
+							exit (IKS_ERROR_WRONG_TYPE);
+					}
+				| expression TK_OC_OR expression
+					{
+						$$ = new_tree_2(AST_LOGICO_OU, $1, $3);
+						if ($1->semantic_type != AMA_BOOL || $3->semantic_type != AMA_BOOL)
+							exit (IKS_ERROR_WRONG_TYPE);
+					}
 				// | expression '&' expression { $$ = new_tree_2(AST_LOGICO_E, $1, $3);}
-				| '-' simple_expression %prec INVERSION { $$ = new_tree_1(AST_ARIM_INVERSAO, $2);}
-				| '!' simple_expression { $$ = new_tree_1(AST_LOGICO_COMP_NEGACAO, $2);}
+				| '-' simple_expression %prec INVERSION
+					{
+						$$ = new_tree_1(AST_ARIM_INVERSAO, $2);
+						if ($2->semantic_type != AMA_INT || $2->semantic_type != AMA_FLOAT)
+							exit (IKS_ERROR_WRONG_TYPE);
+					}
+				| '!' simple_expression
+					{
+						$$ = new_tree_1(AST_LOGICO_COMP_NEGACAO, $2);
+						if ($2->semantic_type != AMA_BOOL)
+							exit (IKS_ERROR_WRONG_TYPE);
+					}
 				;
 simple_expression	: expression_leaf { $$ = $1;}
 					| '(' expression ')' { $$ = $2;} 

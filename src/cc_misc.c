@@ -1,5 +1,5 @@
 #include "cc_misc.h"
-#include "cc_dict.h"
+#include "cc_tree.h"
 #include "cc_stack.h"
 
 extern unsigned long int line_num;
