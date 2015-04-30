@@ -9,36 +9,34 @@ comp_param_list_t* new_param_list()
     return l;
 }
 
-comp_param_list_t* append_param_list(comp_param_list_t* l, int param_type)
+comp_param_list_t* append_param_list_item(comp_param_list_t* l, comp_param_list_item_t* i)
 {
-    comp_param_list_item_t* n = (comp_param_list_item_t*) malloc(sizeof(comp_param_list_item_t));
-    n->param_type = param_type;
-    n->next = NULL;
     if (l->end == NULL)
     {
-        l->start = l->end = n;
+        l->start = l->end = i;
+        i->next = NULL;
     }
     else {
-        l->end->next = n;
-        l->end = n;
-    }
-    l->length++;
-    return l;
+        l->end->next = i;
+        l->end = i;
+	}
+	l->length++;
+	return l;
+}
+
+void free_param_list_items(comp_param_list_item_t* item)
+{
+    if (item == NULL) return;
+    free_param_list_items(item->next);
+    free(item);
 }
 
 void free_param_list(comp_param_list_t *l)
 {
 	if (l == NULL) return;
     comp_param_list_item_t* s = l->start;
-    if (s == NULL) return;
-    
-    while (s->next != NULL)
-    {
-        comp_param_list_item_t* next = s->next;
-        free(s);
-        s = next;
-    }
-    free(s);
+    free_param_list_items(s);
+    free(l);
 }
 
 comp_param_list_item_t* new_param_list_item()
