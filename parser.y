@@ -258,6 +258,7 @@ func_call		: TK_IDENTIFICADOR '(' ')'
                                 n = 0;
                                 while (args != NULL && args->next_type == NEXT_ARGUMENT)
                                 {
+                                    // TODO change this to add coercion
                                     if (args->semantic_type != $1->type.arg_types[n])
                                         exit(IKS_ERROR_WRONG_TYPE);
                                     n++; args = args->next;
