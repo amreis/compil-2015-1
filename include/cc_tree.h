@@ -14,6 +14,8 @@ typedef struct _comp_tree_t {
 	comp_dict_item_t* value;
 
     int semantic_type;
+    char needs_coercion;
+    int coerced_type;
 
 	struct _comp_tree_t* child[3];
 	int next_type;

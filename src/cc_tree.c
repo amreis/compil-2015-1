@@ -10,6 +10,8 @@ comp_tree_t* new_tree(int type)
 	resp->type = type;
 	resp->value = NULL;
 	resp->semantic_type = AMA_INVALID;
+	resp->needs_coercion = 0;
+	resp->coerced_type = AMA_INVALID;
 	resp->child[0] = NULL;
 	resp->child[1] = NULL;
 	resp->child[2] = NULL;

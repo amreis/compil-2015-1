@@ -275,7 +275,7 @@ args_list		: expression { $$ = $1; }
 
 /** EXPRESSÕES LÓGICAS E ARITMÉTICAS **/
 expression		: simple_expression { $$ = $1;}
-				| expression '+' expression { $$ = new_tree_2(AST_ARIM_SOMA, $1, $3);}
+				| expression '+' expression { $$ = new_tree_2(AST_ARIM_SOMA, $1, $3); coercion($1, $3);}
 				| expression '-' expression { $$ = new_tree_2(AST_ARIM_SUBTRACAO, $1, $3);}
 				| expression '*' expression { $$ = new_tree_2(AST_ARIM_MULTIPLICACAO, $1, $3);}
 				| expression '/' expression { $$ = new_tree_2(AST_ARIM_DIVISAO, $1, $3);}

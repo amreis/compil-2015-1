@@ -24,3 +24,37 @@ void main_finalize (void)
 {
     free_stack(sym_stack);
 }
+
+void coercion (comp_tree_t *arg1, comp_tree_t *arg2)
+{
+	if (arg1->semantic_type == AMA_FLOAT && arg2->semantic_type == AMA_INT)
+	{
+		arg2->needs_coercion = 1;
+		arg2->coerced_type = AMA_FLOAT;
+	}
+	else if( arg1->semantic_type == AMA_INT && arg2->semantic_type == AMA_FLOAT)
+	{
+		arg1->needs_coercion = 1;
+		arg1->coerced_type = AMA_FLOAT;
+	}
+	else if (arg1->semantic_type == AMA_BOOL && arg2->semantic_type == AMA_INT)
+	{
+		arg1->needs_coercion = 1;
+		arg1->coerced_type = AMA_INT;
+	}
+	else if( arg1->semantic_type == AMA_INT && arg2->semantic_type == AMA_BOOL)
+	{
+		arg2->needs_coercion = 1;
+		arg2->coerced_type = AMA_INT;
+	}
+	else if (arg1->semantic_type == AMA_BOOL && arg2->semantic_type == AMA_FLOAT)
+	{
+		arg1->needs_coercion = 1;
+		arg1->coerced_type = AMA_FLOAT;
+	}
+	else if( arg1->semantic_type == AMA_FLOAT && arg2->semantic_type == AMA_BOOL)
+	{
+		arg2->needs_coercion = 1;
+		arg2->coerced_type = AMA_FLOAT;
+	}
+}
