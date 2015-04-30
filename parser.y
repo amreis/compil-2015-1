@@ -18,6 +18,8 @@
 comp_tree_t* final_ast;
 
 extern comp_stack_t* sym_stack;
+
+int ret_val = IKS_SUCCESS;
 // Since we don't allow functions to be declared inside functions, a single
 // pointer does the trick, so that we know which function we are in.
 comp_dict_item_t* current_function = NULL;
@@ -84,7 +86,8 @@ comp_dict_item_t* current_function = NULL;
 /* Regras (e ações) da gramática */
 
 
-full_program: program { $$ = new_tree_0(AST_PROGRAMA); set_list_child_tree($$,0,$1); final_ast = $$; /*typecheck(final_ast);*/ } ;
+full_program: program { $$ = new_tree_0(AST_PROGRAMA); set_list_child_tree($$,0,$1); final_ast = $$; 
+free_tree(final_ast); final_ast = NULL; free_stack(sym_stack); sym_stack = NULL; return ret_val; /*typecheck(final_ast);*/ } ;
 
 /* A program is a sequence of global variable declarations and function
    declarations. It may also be empty. */
@@ -108,7 +111,7 @@ vector_var_decl	: simple_var_decl '[' TK_LIT_INT ']' { $1->type.is_vector = 1; $
 simple_var_decl	: type TK_IDENTIFICADOR
                   {
                     if ($2->type.base != AMA_INVALID) {
-                        exit(IKS_ERROR_DECLARED);
+                        ret_val =   (IKS_ERROR_DECLARED);
                     }
                     $2->type.base = $1;
                     $$ = $2;
@@ -130,7 +133,7 @@ simple_func_decl: type TK_IDENTIFICADOR '(' params_list ')'
                     {
 
                         if ($2->type.base != AMA_INVALID) {
-                            exit(IKS_ERROR_DECLARED);
+                            ret_val =   (IKS_ERROR_DECLARED);
                         }
                         $2->type.base = $1;
                         $2->type.is_function = 1;
@@ -151,8 +154,8 @@ params_list	: nonempty_params_list { $$ = $1; }
 
 /* A list of parameters that is not empty is either a single parameter or a parameter 
    preceded by another non-empty list of arguments and a comma */
-nonempty_params_list: param { $$ = new_param_list(); append_param_list($$, $1->param_type); } 
-                    | nonempty_params_list ',' param { append_param_list($1, $3->param_type); $$ = $1; };
+nonempty_params_list: param { $$ = new_param_list(); append_param_list_item($$, $1); } 
+                    | nonempty_params_list ',' param { append_param_list_item($1, $3); $$ = $1; };
 
 /* A parameter is like a variable declaration, but it might be const */
 param			: TK_PR_CONST simple_var_decl { $$ = new_param_list_item(); $$->param_type = $2->type.base; }
@@ -178,9 +181,9 @@ simple_command	: local_var_decl 	{ $$ = NULL; }
 				| /*empty*/ 		{ $$ = NULL; }
 				| func_call 		{ $$ = $1; }
 				;
-invalid_stmt	: gen_func_decl { yyerror("Illegal function declaration ending"); return SINTATICA_ERRO; }
-				| TK_PR_RETURN { yyerror("Return with no value"); return SINTATICA_ERRO; }
-				| TK_PR_OUTPUT { yyerror("Output without values"); return SINTATICA_ERRO; }
+invalid_stmt	: gen_func_decl { yyerror("Illegal function declaration ending"); ret_val =   SINTATICA_ERRO; }
+				| TK_PR_RETURN { yyerror("Return with no value"); ret_val =   SINTATICA_ERRO; }
+				| TK_PR_OUTPUT { yyerror("Output without values"); ret_val =   SINTATICA_ERRO; }
 				;
 // DECLARAÇÃO DE VARIÁVEL LOCAL
 local_var_decl	: gen_local_var
@@ -217,13 +220,13 @@ func_call		: TK_IDENTIFICADOR '(' ')'
                         $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1));
 
                         if ($1->type.base == AMA_INVALID)
-                            exit(IKS_ERROR_UNDECLARED);
+                            ret_val =   (IKS_ERROR_UNDECLARED);
                         else if ($1->type.is_vector)
-                            exit(IKS_ERROR_VECTOR);
+                            ret_val =   (IKS_ERROR_VECTOR);
                         else if (!$1->type.is_function)
-                            exit(IKS_ERROR_VARIABLE);
+                            ret_val =   (IKS_ERROR_VARIABLE);
                         else if ($1->type.n_args != 0)
-                            exit(IKS_ERROR_MISSING_ARGS);
+                            ret_val =   (IKS_ERROR_MISSING_ARGS);
                         else
                         {
                             $$->semantic_type = $1->type.base;
@@ -233,11 +236,11 @@ func_call		: TK_IDENTIFICADOR '(' ')'
 				    {
 				        $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1)); set_list_child_tree($$,1,$3);
 				        if ($1->type.base == AMA_INVALID)
-                            exit(IKS_ERROR_UNDECLARED);
+                            ret_val =   (IKS_ERROR_UNDECLARED);
                         else if ($1->type.is_vector)
-                            exit(IKS_ERROR_VECTOR);
+                            ret_val =   (IKS_ERROR_VECTOR);
                         else if (!$1->type.is_function)
-                            exit(IKS_ERROR_VARIABLE);
+                            ret_val = (IKS_ERROR_VARIABLE);
                         else
                         {
                             int n = 0;
@@ -250,9 +253,9 @@ func_call		: TK_IDENTIFICADOR '(' ')'
                                 else break;
                             }
                             if (n < $1->type.n_args)
-                                exit(IKS_ERROR_MISSING_ARGS);
+                                ret_val =   (IKS_ERROR_MISSING_ARGS);
                             else if (n > $1->type.n_args)
-                                yyerror("Too many arguments to function"), exit(IKS_ERROR_EXCESS_ARGS);
+                                { yyerror("Too many arguments to function"); ret_val =   (IKS_ERROR_EXCESS_ARGS); }
                             else {
                                 args = $3;
                                 n = 0;
@@ -260,7 +263,7 @@ func_call		: TK_IDENTIFICADOR '(' ')'
                                 {
                                     // TODO change this to add coercion
                                     if (args->semantic_type != $1->type.arg_types[n])
-                                        exit(IKS_ERROR_WRONG_TYPE);
+                                        ret_val =   (IKS_ERROR_WRONG_TYPE_ARGS);
                                     n++; args = args->next;
                                 }
                             }
@@ -496,7 +499,7 @@ expression_leaf : TK_IDENTIFICADOR
                         $$ = new_tree_valued(AST_IDENTIFICADOR, $1);
                         if ($1->type.base == AMA_INVALID)
                         {
-                            exit(IKS_ERROR_UNDECLARED);
+                            ret_val =   (IKS_ERROR_UNDECLARED);
                         }
                         else $$->semantic_type = $1->type.base;
                     }

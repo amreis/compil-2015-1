@@ -13,7 +13,7 @@ typedef struct _comp_param_list_t {
 } comp_param_list_t;
 
 comp_param_list_t* new_param_list();
-comp_param_list_t* append_param_list(comp_param_list_t* l, int param_type);
+comp_param_list_t* append_param_list_item(comp_param_list_t* l, comp_param_list_item_t* i);
 void free_param_list(comp_param_list_t* l);
 
 comp_param_list_item_t* new_param_list_item();
