@@ -181,9 +181,9 @@ simple_command	: local_var_decl 	{ $$ = NULL; }
 				| /*empty*/ 		{ $$ = NULL; }
 				| func_call 		{ $$ = $1; }
 				;
-invalid_stmt	: gen_func_decl { yyerror("Illegal function declaration ending"); ret_val =   SINTATICA_ERRO; }
-				| TK_PR_RETURN { yyerror("Return with no value"); ret_val =   SINTATICA_ERRO; }
-				| TK_PR_OUTPUT { yyerror("Output without values"); ret_val =   SINTATICA_ERRO; }
+invalid_stmt	: gen_func_decl { yyerror("Illegal function declaration ending"); return SINTATICA_ERRO; }
+				| TK_PR_RETURN { yyerror("Return with no value"); return SINTATICA_ERRO; }
+				| TK_PR_OUTPUT { yyerror("Output without values"); return SINTATICA_ERRO; }
 				;
 // DECLARAÇÃO DE VARIÁVEL LOCAL
 local_var_decl	: gen_local_var
@@ -336,8 +336,7 @@ expression		: simple_expression { $$ = $1;}
 						}
 						else
 						{
-							coercion($1, $3);
-							$$->semantic_type = $1->semantic_type;
+							$$->semantic_type = coercion($1, $3);
 						}
 					}
 				| expression '-' expression
@@ -405,7 +404,8 @@ expression		: simple_expression { $$ = $1;}
 						}
 						else
 						{
-							$$->semantic_type = coercion($1, $3);
+							coercion($1, $3);
+							$$->semantic_type = AMA_BOOL;
 						}
 					}
 				| expression '>' expression
@@ -425,7 +425,8 @@ expression		: simple_expression { $$ = $1;}
 						}
 						else
 						{
-							$$->semantic_type = coercion($1, $3);
+							coercion($1, $3);
+							$$->semantic_type = AMA_BOOL;
 						}
 					}
 				| expression TK_OC_LE expression
@@ -446,7 +447,7 @@ expression		: simple_expression { $$ = $1;}
 						else
 						{
 							coercion($1, $3);
-							$$->semantic_type = $1->semantic_type;
+							$$->semantic_type = AMA_BOOL;
 						}
 					}
 				| expression TK_OC_GE expression
@@ -466,7 +467,8 @@ expression		: simple_expression { $$ = $1;}
 						}
 						else
 						{
-							$$->semantic_type = coercion($1, $3);
+							coercion($1, $3);
+							$$->semantic_type = AMA_BOOL;
 						}
 					}
 				| expression TK_OC_EQ expression
@@ -482,7 +484,8 @@ expression		: simple_expression { $$ = $1;}
 						}
 						else
 						{
-							$$->semantic_type = coercion($1, $3);
+							coercion($1, $3);
+							$$->semantic_type = AMA_BOOL;
 						}
 					}
 				| expression TK_OC_NE expression
@@ -498,7 +501,8 @@ expression		: simple_expression { $$ = $1;}
 						}
 						else
 						{
-							$$->semantic_type = coercion($1, $3);
+							coercion($1, $3);
+							$$->semantic_type = AMA_BOOL;
 						}
 					}
 				| expression TK_OC_AND expression
