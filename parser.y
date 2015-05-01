@@ -264,7 +264,7 @@ func_call		: TK_IDENTIFICADOR '(' ')'
                                     // TODO change this to add coercion
                                     if (!is_compatible(args->semantic_type, $1->type.arg_types[n]))
                                         ret_val = IKS_ERROR_WRONG_TYPE_ARGS;
-                                    if (args->semantic_type != $1->type.arg_types[n])
+                                    else if (args->semantic_type != $1->type.arg_types[n])
                                     {
                                         args->needs_coercion = 1;
                                         args->coerced_type = $1->type.arg_types[n];
@@ -509,7 +509,7 @@ expression_leaf : TK_IDENTIFICADOR
 				    {
 				        ret_val = IKS_ERROR_WRONG_TYPE;
 			        }
-			        if ($3->semantic_type != AMA_INT)
+			        else if ($3->semantic_type != AMA_INT)
 			        {
 			            $3->needs_coercion = 1;
 			            $3->coerced_type = AMA_INT;
