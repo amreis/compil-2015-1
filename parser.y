@@ -246,7 +246,47 @@ assignment		: TK_IDENTIFICADOR '=' expression
                         $3->coerced_type = $1->type.base;
                     }
                 }
-				| TK_IDENTIFICADOR '[' expression ']' '=' expression { $$ = new_tree_2(AST_ATRIBUICAO,new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3), $6);}
+				| TK_IDENTIFICADOR '[' expression ']' '=' expression
+				{
+                    $$ = new_tree_2(AST_ATRIBUICAO,new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3), $6);
+				    if ($1->type.base == AMA_INVALID)
+				        ret_val = IKS_ERROR_UNDECLARED;
+                    else if ($1->type.is_function)
+                        ret_val = IKS_ERROR_FUNCTION;
+                    else if (!$1->type.is_vector)
+                        ret_val = IKS_ERROR_VARIABLE;
+                    // Check type of the expression between brackets.
+                    if ($3->semantic_type == AMA_STRING)
+                        ret_val = IKS_ERROR_STRING_TO_X;
+                    else if ($3->semantic_type == AMA_CHAR)
+                        ret_val = IKS_ERROR_CHAR_TO_X;
+                    else
+                    {
+                        if ($3->semantic_type != AMA_INT)
+                        {
+                            $3->needs_coercion = 1;
+                            $3->coerced_type = AMA_INT;
+                        }
+                    }
+                    // Check type of the assignment expression
+                    if (!is_compatible($6->semantic_type, $1->type.base))
+                    {
+                        switch ($6->semantic_type)
+                        {
+                            case AMA_STRING:
+                                ret_val = IKS_ERROR_STRING_TO_X;
+                                break;
+                            case AMA_CHAR:
+                                ret_val = IKS_ERROR_CHAR_TO_X;
+                                break;
+                        }
+                    }
+                    else if ($6->semantic_type != $1->type.base)
+                    {
+                        $6->needs_coercion = 1;
+                        $6->coerced_type = $1->type.base;
+                    }
+			    }
 				;
 // ENTRADA
 input_statement	: TK_PR_INPUT expression '=' '>' expression {$$ = new_tree_2(AST_INPUT, $2, $5);}
@@ -584,7 +624,7 @@ expression_leaf : TK_IDENTIFICADOR
 				    $$->semantic_type = $1->type.base;
 			    }
 				| literal { $$ = $1; }
-				| func_call
+				| func_call { $$ = $1; }
 				;
 
 
