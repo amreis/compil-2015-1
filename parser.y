@@ -111,7 +111,7 @@ vector_var_decl	: simple_var_decl '[' TK_LIT_INT ']' { $1->type.is_vector = 1; $
 simple_var_decl	: type TK_IDENTIFICADOR
                   {
                     if ($2->type.base != AMA_INVALID) {
-                        ret_val =   (IKS_ERROR_DECLARED);
+                        ret_val = IKS_ERROR_DECLARED;
                     }
                     $2->type.base = $1;
                     $$ = $2;
@@ -133,7 +133,7 @@ simple_func_decl: type TK_IDENTIFICADOR '(' params_list ')'
                     {
 
                         if ($2->type.base != AMA_INVALID) {
-                            ret_val =   (IKS_ERROR_DECLARED);
+                            ret_val = IKS_ERROR_DECLARED;
                         }
                         $2->type.base = $1;
                         $2->type.is_function = 1;
@@ -220,13 +220,13 @@ func_call		: TK_IDENTIFICADOR '(' ')'
                         $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1));
 
                         if ($1->type.base == AMA_INVALID)
-                            ret_val =   (IKS_ERROR_UNDECLARED);
+                            ret_val = IKS_ERROR_UNDECLARED;
                         else if ($1->type.is_vector)
-                            ret_val =   (IKS_ERROR_VECTOR);
+                            ret_val = IKS_ERROR_VECTOR;
                         else if (!$1->type.is_function)
-                            ret_val =   (IKS_ERROR_VARIABLE);
+                            ret_val = IKS_ERROR_VARIABLE;
                         else if ($1->type.n_args != 0)
-                            ret_val =   (IKS_ERROR_MISSING_ARGS);
+                            ret_val = IKS_ERROR_MISSING_ARGS;
                         else
                         {
                             $$->semantic_type = $1->type.base;
@@ -236,11 +236,11 @@ func_call		: TK_IDENTIFICADOR '(' ')'
 				    {
 				        $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1)); set_list_child_tree($$,1,$3);
 				        if ($1->type.base == AMA_INVALID)
-                            ret_val =   (IKS_ERROR_UNDECLARED);
+                            ret_val = IKS_ERROR_UNDECLARED;
                         else if ($1->type.is_vector)
-                            ret_val =   (IKS_ERROR_VECTOR);
+                            ret_val = IKS_ERROR_VECTOR;
                         else if (!$1->type.is_function)
-                            ret_val = (IKS_ERROR_VARIABLE);
+                            ret_val = IKS_ERROR_VARIABLE;
                         else
                         {
                             int n = 0;
@@ -253,9 +253,9 @@ func_call		: TK_IDENTIFICADOR '(' ')'
                                 else break;
                             }
                             if (n < $1->type.n_args)
-                                ret_val =   (IKS_ERROR_MISSING_ARGS);
+                                ret_val = IKS_ERROR_MISSING_ARGS;
                             else if (n > $1->type.n_args)
-                                { yyerror("Too many arguments to function"); ret_val =   (IKS_ERROR_EXCESS_ARGS); }
+                                { yyerror("Too many arguments to function"); ret_val = IKS_ERROR_EXCESS_ARGS; }
                             else {
                                 args = $3;
                                 n = 0;
@@ -263,7 +263,7 @@ func_call		: TK_IDENTIFICADOR '(' ')'
                                 {
                                     // TODO change this to add coercion
                                     if (args->semantic_type != $1->type.arg_types[n])
-                                        ret_val =   (IKS_ERROR_WRONG_TYPE_ARGS);
+                                        ret_val = IKS_ERROR_WRONG_TYPE_ARGS;
                                     n++; args = args->next;
                                 }
                             }
@@ -283,11 +283,11 @@ expression		: simple_expression { $$ = $1;}
 						$$ = new_tree_2(AST_ARIM_SOMA, $1, $3);
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
-							ret_val = (IKS_ERROR_CHAR_TO_X);
+							ret_val = IKS_ERROR_CHAR_TO_X;
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
-							ret_val = (IKS_ERROR_STRING_TO_X);
+							ret_val = IKS_ERROR_STRING_TO_X;
 						}
 						else
 						{
@@ -300,11 +300,11 @@ expression		: simple_expression { $$ = $1;}
 						$$ = new_tree_2(AST_ARIM_SUBTRACAO, $1, $3);
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
-							ret_val = (IKS_ERROR_CHAR_TO_X);
+							ret_val = IKS_ERROR_CHAR_TO_X;
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
-							ret_val = (IKS_ERROR_STRING_TO_X);
+							ret_val = IKS_ERROR_STRING_TO_X;
 						}
 						else
 						{
@@ -317,11 +317,11 @@ expression		: simple_expression { $$ = $1;}
 						$$ = new_tree_2(AST_ARIM_MULTIPLICACAO, $1, $3);
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
-							ret_val = (IKS_ERROR_CHAR_TO_X);
+							ret_val = IKS_ERROR_CHAR_TO_X;
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
-							ret_val = (IKS_ERROR_STRING_TO_X);
+							ret_val = IKS_ERROR_STRING_TO_X;
 						}
 						else
 						{
@@ -334,11 +334,11 @@ expression		: simple_expression { $$ = $1;}
 						$$ = new_tree_2(AST_ARIM_DIVISAO, $1, $3);
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
-							ret_val = (IKS_ERROR_CHAR_TO_X);
+							ret_val = IKS_ERROR_CHAR_TO_X;
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
-							ret_val = (IKS_ERROR_STRING_TO_X);
+							ret_val = IKS_ERROR_STRING_TO_X;
 						}
 						else
 						{
@@ -352,15 +352,15 @@ expression		: simple_expression { $$ = $1;}
 						$$ = new_tree_2(AST_LOGICO_COMP_L, $1, $3);
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
-							ret_val = (IKS_ERROR_CHAR_TO_X);
+							ret_val = IKS_ERROR_CHAR_TO_X;
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
-							ret_val = (IKS_ERROR_STRING_TO_X);
+							ret_val = IKS_ERROR_STRING_TO_X;
 						}
 						else if ($1->semantic_type == AMA_BOOL || $3->semantic_type == AMA_BOOL)
 						{
-							ret_val = (IKS_ERROR_WRONG_TYPE);
+							ret_val = IKS_ERROR_WRONG_TYPE;
 						}
 						else
 						{
@@ -373,15 +373,15 @@ expression		: simple_expression { $$ = $1;}
 						$$ = new_tree_2(AST_LOGICO_COMP_G, $1, $3);
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
-							ret_val = (IKS_ERROR_CHAR_TO_X);
+							ret_val = IKS_ERROR_CHAR_TO_X;
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
-							ret_val = (IKS_ERROR_STRING_TO_X);
+							ret_val = IKS_ERROR_STRING_TO_X;
 						}
 						else if ($1->semantic_type == AMA_BOOL || $3->semantic_type == AMA_BOOL)
 						{
-							ret_val = (IKS_ERROR_WRONG_TYPE);
+							ret_val = IKS_ERROR_WRONG_TYPE;
 						}
 						else
 						{
@@ -394,15 +394,15 @@ expression		: simple_expression { $$ = $1;}
 						$$ = new_tree_2(AST_LOGICO_COMP_LE, $1, $3);
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
-							ret_val = (IKS_ERROR_CHAR_TO_X);
+							ret_val = IKS_ERROR_CHAR_TO_X;
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
-							ret_val = (IKS_ERROR_STRING_TO_X);
+							ret_val = IKS_ERROR_STRING_TO_X;
 						}
 						else if ($1->semantic_type == AMA_BOOL || $3->semantic_type == AMA_BOOL)
 						{
-							ret_val = (IKS_ERROR_WRONG_TYPE);
+							ret_val = IKS_ERROR_WRONG_TYPE;
 						}
 						else
 						{
@@ -415,15 +415,15 @@ expression		: simple_expression { $$ = $1;}
 						$$ = new_tree_2(AST_LOGICO_COMP_GE, $1, $3);
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
-							ret_val = (IKS_ERROR_CHAR_TO_X);
+							ret_val = IKS_ERROR_CHAR_TO_X;
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
-							ret_val = (IKS_ERROR_STRING_TO_X);
+							ret_val = IKS_ERROR_STRING_TO_X;
 						}
 						else if ($1->semantic_type == AMA_BOOL || $3->semantic_type == AMA_BOOL)
 						{
-							ret_val = (IKS_ERROR_WRONG_TYPE);
+							ret_val = IKS_ERROR_WRONG_TYPE;
 						}
 						else
 						{
@@ -436,11 +436,11 @@ expression		: simple_expression { $$ = $1;}
 						$$ = new_tree_2(AST_LOGICO_COMP_IGUAL, $1, $3);
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
-							ret_val = (IKS_ERROR_CHAR_TO_X);
+							ret_val = IKS_ERROR_CHAR_TO_X;
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
-							ret_val = (IKS_ERROR_STRING_TO_X);
+							ret_val = IKS_ERROR_STRING_TO_X;
 						}
 						else
 						{
@@ -453,11 +453,11 @@ expression		: simple_expression { $$ = $1;}
 						$$ = new_tree_2(AST_LOGICO_COMP_DIF, $1, $3);
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
-							ret_val = (IKS_ERROR_CHAR_TO_X);
+							ret_val = IKS_ERROR_CHAR_TO_X;
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
-							ret_val = (IKS_ERROR_STRING_TO_X);
+							ret_val = IKS_ERROR_STRING_TO_X;
 						}
 						else
 						{
@@ -469,26 +469,26 @@ expression		: simple_expression { $$ = $1;}
 					{
 						$$ = new_tree_2(AST_LOGICO_E, $1, $3);
 						if ($1->semantic_type != AMA_BOOL || $3->semantic_type != AMA_BOOL)
-							ret_val = (IKS_ERROR_WRONG_TYPE);
+							ret_val = IKS_ERROR_WRONG_TYPE;
 					}
 				| expression TK_OC_OR expression
 					{
 						$$ = new_tree_2(AST_LOGICO_OU, $1, $3);
 						if ($1->semantic_type != AMA_BOOL || $3->semantic_type != AMA_BOOL)
-							ret_val = (IKS_ERROR_WRONG_TYPE);
+							ret_val = IKS_ERROR_WRONG_TYPE;
 					}
 				// | expression '&' expression { $$ = new_tree_2(AST_LOGICO_E, $1, $3);}
 				| '-' simple_expression %prec INVERSION
 					{
 						$$ = new_tree_1(AST_ARIM_INVERSAO, $2);
 						if ($2->semantic_type != AMA_INT || $2->semantic_type != AMA_FLOAT)
-							ret_val = (IKS_ERROR_WRONG_TYPE);
+							ret_val = IKS_ERROR_WRONG_TYPE;
 					}
 				| '!' simple_expression
 					{
 						$$ = new_tree_1(AST_LOGICO_COMP_NEGACAO, $2);
 						if ($2->semantic_type != AMA_BOOL)
-							ret_val = (IKS_ERROR_WRONG_TYPE);
+							ret_val = IKS_ERROR_WRONG_TYPE;
 					}
 				;
 simple_expression	: expression_leaf { $$ = $1;}
@@ -499,7 +499,7 @@ expression_leaf : TK_IDENTIFICADOR
                         $$ = new_tree_valued(AST_IDENTIFICADOR, $1);
                         if ($1->type.base == AMA_INVALID)
                         {
-                            ret_val =   (IKS_ERROR_UNDECLARED);
+                            ret_val = IKS_ERROR_UNDECLARED;
                         }
                         else $$->semantic_type = $1->type.base;
                     }
