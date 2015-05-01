@@ -79,7 +79,8 @@ void report_error(int errcode, ...)
 	sprintf(buffer, "Wrong input parameter");
 	break;
 	case IKS_ERROR_WRONG_PAR_OUTPUT:
-	sprintf(buffer, "Wrong output parameter");
+	arg1 = va_arg(a_list, int);
+	sprintf(buffer, "Wrong output parameter number %d", arg1);
 	break;
 	case IKS_ERROR_WRONG_PAR_RETURN:
 	arg0 = va_arg(a_list, char*);

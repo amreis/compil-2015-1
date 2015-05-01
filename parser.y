@@ -76,8 +76,8 @@ comp_dict_item_t* current_function = NULL;
 %type<ast> return_statement assignment input_statement output_statement
 %type<ast> func_call args_list output_list program full_program gen_func_decl static_func_decl simple_func_decl
 
-%type<type> type
-%type<dict_entry> simple_var_decl vector_var_decl
+%type<type> type init_literal
+%type<dict_entry> simple_var_decl vector_var_decl simple_local_var static_local_var gen_local_var
 %type<param_list> params_list nonempty_params_list
 %type<param_list_item> param
 %error-verbose
@@ -189,10 +189,68 @@ invalid_stmt    : gen_func_decl { yyerror("Illegal function declaration ending")
 // DECLARAÇÃO DE VARIÁVEL LOCAL
 local_var_decl    : gen_local_var
                 | gen_local_var TK_OC_LE TK_IDENTIFICADOR
+                  {
+                    char lex[256];
+                    strcpy(lex, $3->lex);
+                    if ($3->type.base == AMA_INVALID)
+                        $3 = query_stack_id(sym_stack->next, $3->lex);
+                    if ($3 == NULL || $3->type.base == AMA_INVALID)
+                    {
+                        ret_val = IKS_ERROR_UNDECLARED;
+                        report_error(IKS_ERROR_UNDECLARED, lex);
+                    }
+                    else if ($3->type.is_vector)
+                    {
+                        ret_val = IKS_ERROR_VECTOR;
+                        report_error(IKS_ERROR_VECTOR, lex);
+                    }
+                    else if ($3->type.is_function)
+                    {
+                        ret_val = IKS_ERROR_FUNCTION;
+                        report_error(IKS_ERROR_FUNCTION, lex);
+                    }
+                    else if (!is_compatible($3->type.base, $1->type.base))
+                    {
+                        if ($3->type.base == AMA_STRING)
+                        {
+                            ret_val = IKS_ERROR_STRING_TO_X;
+                            report_error(IKS_ERROR_STRING_TO_X);
+                        }
+                        else if ($3->type.base == AMA_CHAR)
+                        {
+                            ret_val = IKS_ERROR_CHAR_TO_X;
+                            report_error(IKS_ERROR_CHAR_TO_X);
+                        }
+                    }
+                    /* Will need coercion later.
+                    else if ($3->type.base != $1->type.base)
+                    {
+                        $3->type.needs_coercion = 1;
+                        $3->type.coerced_type = $1->type.base;
+                    } */
+                  }
                 | gen_local_var TK_OC_LE init_literal
+                  {
+                    if (!is_compatible($3, $1->type.base))
+                    {
+                        if ($3 == AMA_STRING)
+                        {
+                            ret_val = IKS_ERROR_STRING_TO_X;
+                            report_error(IKS_ERROR_STRING_TO_X);
+                        }
+                        else if ($3 == AMA_CHAR)
+                        {
+                            ret_val = IKS_ERROR_CHAR_TO_X;
+                            report_error(IKS_ERROR_STRING_TO_X);
+                        }
+                    }
+                    /* Will need coercion later. For now, this works.
+                    else if ($3 != $1->type.base)
+                    */
+                  }
                 ;
 
-gen_local_var    : simple_local_var | static_local_var ;
+gen_local_var    : simple_local_var { $$ = $1; } | static_local_var { $$ = $1; } ;
 
 simple_local_var: type TK_IDENTIFICADOR 
                   {
@@ -202,6 +260,7 @@ simple_local_var: type TK_IDENTIFICADOR
                         report_error(IKS_ERROR_DECLARED, $2->lex);
                     }
                     $2->type.base = $1;
+                    $$ = $2;
                   }
                 | TK_PR_CONST type TK_IDENTIFICADOR
                   {
@@ -211,9 +270,10 @@ simple_local_var: type TK_IDENTIFICADOR
                         report_error(IKS_ERROR_DECLARED, $3->lex);
                     }
                     $3->type.base = $2;
+                    $$ = $3;
                   }
                 ;
-static_local_var: TK_PR_STATIC simple_local_var
+static_local_var: TK_PR_STATIC simple_local_var { $$ = $2; }
                 ;
 // ATRIBUIÇÃO
 assignment        : TK_IDENTIFICADOR '=' expression
@@ -308,10 +368,40 @@ assignment        : TK_IDENTIFICADOR '=' expression
                 }
                 ;
 // ENTRADA
-input_statement    : TK_PR_INPUT expression '=' '>' expression {$$ = new_tree_2(AST_INPUT, $2, $5);}
+input_statement    : TK_PR_INPUT expression '=' '>' expression
+                     {
+                        $$ = new_tree_2(AST_INPUT, $2, $5);
+                        if ($5->value->token_type != SIMBOLO_IDENTIFICADOR)
+                        {
+                            ret_val = IKS_ERROR_WRONG_PAR_INPUT;
+                            report_error(IKS_ERROR_WRONG_PAR_INPUT);
+                        }
+                     }
                 ; /* bug: you can have whitespace between '=' and '>' */
 // SAÍDA
-output_statement: TK_PR_OUTPUT output_list { $$ = new_tree_0(AST_OUTPUT); set_list_child_tree($$,0,$2); }
+output_statement: TK_PR_OUTPUT output_list
+                  {
+                    $$ = new_tree_0(AST_OUTPUT); set_list_child_tree($$,0,$2);
+                    comp_tree_t* list = $2->first;
+                    int count = 0;
+                    while (list != NULL)
+                    {
+                        if (list->value->token_type != SIMBOLO_LITERAL_STRING &&
+                            list->value->token_type != SIMBOLO_INVALIDO)
+                        {
+                            ret_val = IKS_ERROR_WRONG_PAR_OUTPUT;
+                            report_error(IKS_ERROR_WRONG_PAR_OUTPUT, count);
+                        }
+                        else if (!is_compatible(list->semantic_type, AMA_INT))
+                        {
+                            ret_val = IKS_ERROR_WRONG_PAR_OUTPUT;
+                            report_error(IKS_ERROR_WRONG_PAR_OUTPUT, count);
+                        }
+                        if (list->next_type == NEXT_OUTPUT)
+                            count++, list = list->next;
+                        else break;
+                    }
+                  }
                 ;
 output_list        : expression { $$ = $1; }
                 | output_list ',' expression { $$ = append_next_tree($1, NEXT_OUTPUT, $3); }
@@ -758,12 +848,12 @@ literal            : TK_LIT_FALSE     { $$ = new_tree_valued(AST_LITERAL, $1); $
                 | TK_LIT_INT    { $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_INT; }
                 | TK_LIT_FLOAT    { $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_FLOAT; }
                 ;
-init_literal    : TK_LIT_FALSE
-                | TK_LIT_TRUE
-                | TK_LIT_CHAR
-                | TK_LIT_STRING
-                | TK_LIT_INT
-                | TK_LIT_FLOAT
+init_literal    : TK_LIT_FALSE  { $$ = AMA_BOOL; }
+                | TK_LIT_TRUE   { $$ = AMA_BOOL; }
+                | TK_LIT_CHAR   { $$ = AMA_CHAR; }
+                | TK_LIT_STRING { $$ = AMA_STRING; }
+                | TK_LIT_INT    { $$ = AMA_INT; }
+                | TK_LIT_FLOAT  { $$ = AMA_FLOAT; }
                 ;
 // unary_operator    : '-' | '!' ;
 
