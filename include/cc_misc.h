@@ -7,6 +7,6 @@ int getLineNumber (void);
 void yyerror (char const *mensagem);
 void main_init (int argc, char **argv);
 void main_finalize (void);
-void coercion (comp_tree_t *arg1, comp_tree_t *arg2);
+int coercion (comp_tree_t *arg1, comp_tree_t *arg2);
 
 #endif

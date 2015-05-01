@@ -30,36 +30,56 @@ void main_finalize (void)
         free_stack(sym_stack);
 }
 
-void coercion (comp_tree_t *arg1, comp_tree_t *arg2)
+// Returns the final type
+int coercion (comp_tree_t *arg1, comp_tree_t *arg2)
 {
 	if (arg1->semantic_type == AMA_FLOAT && arg2->semantic_type == AMA_INT)
 	{
 		arg2->needs_coercion = 1;
 		arg2->coerced_type = AMA_FLOAT;
+		return AMA_FLOAT;
 	}
 	else if( arg1->semantic_type == AMA_INT && arg2->semantic_type == AMA_FLOAT)
 	{
 		arg1->needs_coercion = 1;
 		arg1->coerced_type = AMA_FLOAT;
+		return AMA_FLOAT;
 	}
 	else if (arg1->semantic_type == AMA_BOOL && arg2->semantic_type == AMA_INT)
 	{
 		arg1->needs_coercion = 1;
 		arg1->coerced_type = AMA_INT;
+		return AMA_INT;
 	}
 	else if( arg1->semantic_type == AMA_INT && arg2->semantic_type == AMA_BOOL)
 	{
 		arg2->needs_coercion = 1;
 		arg2->coerced_type = AMA_INT;
+		return AMA_INT;
 	}
 	else if (arg1->semantic_type == AMA_BOOL && arg2->semantic_type == AMA_FLOAT)
 	{
 		arg1->needs_coercion = 1;
 		arg1->coerced_type = AMA_FLOAT;
+		return AMA_FLOAT;
 	}
 	else if( arg1->semantic_type == AMA_FLOAT && arg2->semantic_type == AMA_BOOL)
 	{
 		arg2->needs_coercion = 1;
 		arg2->coerced_type = AMA_FLOAT;
+		return AMA_FLOAT;
 	}
+	return AMA_INVALID;
+}
+
+int is_compatible(int expr_type, int required_type)
+{
+	if (expr_type == required_type) return 1;
+	if (expr_type == AMA_INT && (required_type == AMA_FLOAT || required_type == AMA_BOOL))
+		return 1;
+	if (expr_type == AMA_BOOL && (required_type == AMA_FLOAT || required_type == AMA_INT))
+		return 1;
+	if (expr_type == AMA_FLOAT && (required_type == AMA_INT || required_type == AMA_BOOL))
+		return 1;
+	return 0;
 }

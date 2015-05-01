@@ -262,8 +262,13 @@ func_call		: TK_IDENTIFICADOR '(' ')'
                                 while (args != NULL && args->next_type == NEXT_ARGUMENT)
                                 {
                                     // TODO change this to add coercion
-                                    if (args->semantic_type != $1->type.arg_types[n])
+                                    if (!is_compatible(args->semantic_type, $1->type.arg_types[n]))
                                         ret_val = IKS_ERROR_WRONG_TYPE_ARGS;
+                                    if (args->semantic_type != $1->type.arg_types[n])
+                                    {
+                                        args->needs_coercion = 1;
+                                        args->coerced_type = $1->type.arg_types[n];
+                                    }
                                     n++; args = args->next;
                                 }
                             }
@@ -308,8 +313,7 @@ expression		: simple_expression { $$ = $1;}
 						}
 						else
 						{
-							coercion($1, $3);
-							$$->semantic_type = $1->semantic_type;
+							$$->semantic_type = coercion($1, $3);
 						}
 					}
 				| expression '*' expression
@@ -325,8 +329,7 @@ expression		: simple_expression { $$ = $1;}
 						}
 						else
 						{
-							coercion($1, $3);
-							$$->semantic_type = $1->semantic_type;
+							$$->semantic_type = coercion($1, $3);
 						}
 					}
 				| expression '/' expression
@@ -342,9 +345,7 @@ expression		: simple_expression { $$ = $1;}
 						}
 						else
 						{
-
-							coercion($1, $3);
-							$$->semantic_type = $1->semantic_type;
+							$$->semantic_type = coercion($1, $3);
 						}
 					}
 				| expression '<' expression
@@ -364,8 +365,7 @@ expression		: simple_expression { $$ = $1;}
 						}
 						else
 						{
-							coercion($1, $3);
-							$$->semantic_type = $1->semantic_type;
+							$$->semantic_type = coercion($1, $3);
 						}
 					}
 				| expression '>' expression
@@ -385,8 +385,7 @@ expression		: simple_expression { $$ = $1;}
 						}
 						else
 						{
-							coercion($1, $3);
-							$$->semantic_type = $1->semantic_type;
+							$$->semantic_type = coercion($1, $3);
 						}
 					}
 				| expression TK_OC_LE expression
@@ -427,8 +426,7 @@ expression		: simple_expression { $$ = $1;}
 						}
 						else
 						{
-							coercion($1, $3);
-							$$->semantic_type = $1->semantic_type;
+							$$->semantic_type = coercion($1, $3);
 						}
 					}
 				| expression TK_OC_EQ expression
@@ -444,8 +442,7 @@ expression		: simple_expression { $$ = $1;}
 						}
 						else
 						{
-							coercion($1, $3);
-							$$->semantic_type = $1->semantic_type;
+							$$->semantic_type = coercion($1, $3);
 						}
 					}
 				| expression TK_OC_NE expression
@@ -461,8 +458,7 @@ expression		: simple_expression { $$ = $1;}
 						}
 						else
 						{
-							coercion($1, $3);
-							$$->semantic_type = $1->semantic_type;
+							$$->semantic_type = coercion($1, $3);
 						}
 					}
 				| expression TK_OC_AND expression
@@ -470,25 +466,29 @@ expression		: simple_expression { $$ = $1;}
 						$$ = new_tree_2(AST_LOGICO_E, $1, $3);
 						if ($1->semantic_type != AMA_BOOL || $3->semantic_type != AMA_BOOL)
 							ret_val = IKS_ERROR_WRONG_TYPE;
+						$$->semantic_type = AMA_BOOL;
 					}
 				| expression TK_OC_OR expression
 					{
 						$$ = new_tree_2(AST_LOGICO_OU, $1, $3);
 						if ($1->semantic_type != AMA_BOOL || $3->semantic_type != AMA_BOOL)
 							ret_val = IKS_ERROR_WRONG_TYPE;
+						$$->semantic_type = AMA_BOOL;
 					}
 				// | expression '&' expression { $$ = new_tree_2(AST_LOGICO_E, $1, $3);}
 				| '-' simple_expression %prec INVERSION
 					{
 						$$ = new_tree_1(AST_ARIM_INVERSAO, $2);
-						if ($2->semantic_type != AMA_INT || $2->semantic_type != AMA_FLOAT)
+						if ($2->semantic_type != AMA_INT && $2->semantic_type != AMA_FLOAT)
 							ret_val = IKS_ERROR_WRONG_TYPE;
+						$$->semantic_type = $2->semantic_type;
 					}
 				| '!' simple_expression
 					{
 						$$ = new_tree_1(AST_LOGICO_COMP_NEGACAO, $2);
 						if ($2->semantic_type != AMA_BOOL)
 							ret_val = IKS_ERROR_WRONG_TYPE;
+						$$->semantic_type = AMA_BOOL;
 					}
 				;
 simple_expression	: expression_leaf { $$ = $1;}
@@ -503,7 +503,20 @@ expression_leaf : TK_IDENTIFICADOR
                         }
                         else $$->semantic_type = $1->type.base;
                     }
-				| TK_IDENTIFICADOR '[' expression ']' { $$ = new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3); }
+				| TK_IDENTIFICADOR '[' expression ']'
+				{
+				    if (!is_compatible($3->semantic_type, AMA_INT))
+				    {
+				        ret_val = IKS_ERROR_WRONG_TYPE;
+			        }
+			        if ($3->semantic_type != AMA_INT)
+			        {
+			            $3->needs_coercion = 1;
+			            $3->coerced_type = AMA_INT;
+		            }
+				    $$ = new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
+				    $$->semantic_type = $1->type.base;
+			    }
 				| literal { $$ = $1; }
 				| func_call
 				;
