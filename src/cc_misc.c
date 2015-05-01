@@ -33,6 +33,8 @@ void main_finalize (void)
 // Returns the final type
 int coercion (comp_tree_t *arg1, comp_tree_t *arg2)
 {
+	if (arg1->semantic_type == arg2->semantic_type)
+		return arg1->semantic_type;
 	if (arg1->semantic_type == AMA_FLOAT && arg2->semantic_type == AMA_INT)
 	{
 		arg2->needs_coercion = 1;
