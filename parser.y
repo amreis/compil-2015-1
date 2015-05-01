@@ -259,7 +259,19 @@ output_list		: expression { $$ = $1; }
 				;
 
 // RETORNO
-return_statement: TK_PR_RETURN expression { $$ = new_tree_1(AST_RETURN, $2);}
+return_statement: TK_PR_RETURN expression
+                  {
+                    $$ = new_tree_1(AST_RETURN, $2);
+                    if (!is_compatible($2->semantic_type, current_function->type.base))
+                    {
+                        ret_val = IKS_ERROR_WRONG_PAR_RETURN;
+                    }
+                    else if (current_function->type.base != $2->semantic_type)
+                    {
+                        $2->needs_coercion = 1;
+                        $2->coerced_type = current_function->type.base;
+                    }
+                  }
 				;
 
 // CHAMADA DE FUNÇÃO
