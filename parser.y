@@ -228,6 +228,14 @@ assignment		: TK_IDENTIFICADOR '=' expression
                     {
                         ret_val = IKS_ERROR_FUNCTION;
                     }
+                    else if ($1->type.base != AMA_STRING && $3->semantic_type == AMA_STRING)
+                    {
+                        ret_val = IKS_ERROR_STRING_TO_X;
+                    }
+                    else if ($1->type.base != AMA_CHAR && $3->semantic_type == AMA_CHAR)
+                    {
+                        ret_val = IKS_ERROR_CHAR_TO_X;
+                    }
                     else if (!is_compatible($1->type.base, $3->semantic_type))
                     {
                         ret_val = IKS_ERROR_WRONG_TYPE;
@@ -284,7 +292,7 @@ func_call		: TK_IDENTIFICADOR '(' ')'
                         else
                         {
                             int n = 0;
-                            comp_tree_t* args = $3;
+                            comp_tree_t* args = $3->first;
                             while (args != NULL)
                             {
                                 n++;
@@ -297,9 +305,9 @@ func_call		: TK_IDENTIFICADOR '(' ')'
                             else if (n > $1->type.n_args)
                                 { yyerror("Too many arguments to function"); ret_val = IKS_ERROR_EXCESS_ARGS; }
                             else {
-                                args = $3;
+                                args = $3->first;
                                 n = 0;
-                                while (args != NULL && args->next_type == NEXT_ARGUMENT)
+                                while (args != NULL)
                                 {
                                     // TODO change this to add coercion
                                     if (!is_compatible(args->semantic_type, $1->type.arg_types[n]))
@@ -309,6 +317,8 @@ func_call		: TK_IDENTIFICADOR '(' ')'
                                         args->needs_coercion = 1;
                                         args->coerced_type = $1->type.arg_types[n];
                                     }
+                                    if (args->next_type != NEXT_ARGUMENT)
+                                        break;
                                     n++; args = args->next;
                                 }
                             }
