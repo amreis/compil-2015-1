@@ -14,7 +14,7 @@
 #include "cc_param_list.h"
 #include "errors.h"
 #include <stdlib.h>
-
+#include <string.h>
 comp_tree_t* final_ast;
 
 extern comp_stack_t* sym_stack;
@@ -134,6 +134,7 @@ simple_func_decl: type TK_IDENTIFICADOR '(' params_list ')'
 
                         if ($2->type.base != AMA_INVALID) {
                             ret_val = IKS_ERROR_DECLARED;
+                            report_error(IKS_ERROR_DECLARED, $2->lex);
                         }
                         $2->type.base = $1;
                         $2->type.is_function = 1;
@@ -198,6 +199,7 @@ simple_local_var: type TK_IDENTIFICADOR
                     if ($2->type.base != AMA_INVALID)
                     {
                         ret_val = IKS_ERROR_DECLARED;
+                        report_error(IKS_ERROR_DECLARED, $2->lex);
                     }
                     $2->type.base = $1;
                   }
@@ -206,6 +208,7 @@ simple_local_var: type TK_IDENTIFICADOR
 				    if ($3->type.base != AMA_INVALID)
 				    {
 				        ret_val = IKS_ERROR_DECLARED;
+                        report_error(IKS_ERROR_DECLARED, $3->lex);
 				    }
 				    $3->type.base = $2;
 			      }
@@ -217,31 +220,38 @@ assignment		: TK_IDENTIFICADOR '=' expression
                 {
                     $1 = query_stack_id(sym_stack, $1->lex);
                     $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
+                    char lex[256];
+                    strcpy(lex, $1->lex);
                     if ($1->type.base == AMA_INVALID)
                     {
                         $1 = query_stack_id(sym_stack->next, $1->lex);
                     }
                     if ($1 == NULL || $1->type.base == AMA_INVALID)
-                        ret_val = IKS_ERROR_UNDECLARED;
+                        report_error(IKS_ERROR_UNDECLARED, lex), ret_val = IKS_ERROR_UNDECLARED;
                     else if ($1->type.is_vector)
                     {
                         ret_val = IKS_ERROR_VECTOR;
+                        report_error(IKS_ERROR_VECTOR, lex);
                     }
                     else if ($1->type.is_function)
                     {
                         ret_val = IKS_ERROR_FUNCTION;
+                        report_error(IKS_ERROR_FUNCTION, lex);
                     }
                     else if ($1->type.base != AMA_STRING && $3->semantic_type == AMA_STRING)
                     {
                         ret_val = IKS_ERROR_STRING_TO_X;
+                        report_error(IKS_ERROR_STRING_TO_X);
                     }
                     else if ($1->type.base != AMA_CHAR && $3->semantic_type == AMA_CHAR)
                     {
                         ret_val = IKS_ERROR_CHAR_TO_X;
+                        report_error(IKS_ERROR_CHAR_TO_X);
                     }
                     else if (!is_compatible($1->type.base, $3->semantic_type))
                     {
                         ret_val = IKS_ERROR_WRONG_TYPE;
+                        report_error(IKS_ERROR_WRONG_TYPE, "assignment");
                     }
                     else if ($1->type.base != $3->semantic_type)
                     {
@@ -252,19 +262,21 @@ assignment		: TK_IDENTIFICADOR '=' expression
 				| TK_IDENTIFICADOR '[' expression ']' '=' expression
 				{
                     $$ = new_tree_2(AST_ATRIBUICAO,new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3), $6);
+                    char lex[256];
+                    strcpy(lex, $1->lex);
 				    if ($1->type.base == AMA_INVALID)
 				        $1 = query_stack_id(sym_stack->next, $1->lex);
 			        if ($1 == NULL || $1->type.base == AMA_INVALID)
-				        ret_val = IKS_ERROR_UNDECLARED;
+				        report_error(IKS_ERROR_UNDECLARED, lex), ret_val = IKS_ERROR_UNDECLARED;
                     else if ($1->type.is_function)
-                        ret_val = IKS_ERROR_FUNCTION;
+                        report_error(IKS_ERROR_FUNCTION, lex), ret_val = IKS_ERROR_FUNCTION;
                     else if (!$1->type.is_vector)
-                        ret_val = IKS_ERROR_VARIABLE;
+                        report_error(IKS_ERROR_VARIABLE, lex), ret_val = IKS_ERROR_VARIABLE;
                     // Check type of the expression between brackets.
                     if ($3->semantic_type == AMA_STRING)
-                        ret_val = IKS_ERROR_STRING_TO_X;
+                        report_error(IKS_ERROR_STRING_TO_X), ret_val = IKS_ERROR_STRING_TO_X;
                     else if ($3->semantic_type == AMA_CHAR)
-                        ret_val = IKS_ERROR_CHAR_TO_X;
+                        report_error(IKS_ERROR_CHAR_TO_X), ret_val = IKS_ERROR_CHAR_TO_X;
                     else
                     {
                         if ($3->semantic_type != AMA_INT)
@@ -279,9 +291,11 @@ assignment		: TK_IDENTIFICADOR '=' expression
                         switch ($6->semantic_type)
                         {
                             case AMA_STRING:
+                                report_error(IKS_ERROR_STRING_TO_X);
                                 ret_val = IKS_ERROR_STRING_TO_X;
                                 break;
                             case AMA_CHAR:
+                                report_error(IKS_ERROR_CHAR_TO_X);
                                 ret_val = IKS_ERROR_CHAR_TO_X;
                                 break;
                         }
@@ -310,6 +324,7 @@ return_statement: TK_PR_RETURN expression
                     if (!is_compatible($2->semantic_type, current_function->type.base))
                     {
                         ret_val = IKS_ERROR_WRONG_PAR_RETURN;
+                        report_error(IKS_ERROR_WRONG_PAR_RETURN, current_function->lex);
                     }
                     else if (current_function->type.base != $2->semantic_type)
                     {
@@ -323,17 +338,18 @@ return_statement: TK_PR_RETURN expression
 func_call		: TK_IDENTIFICADOR '(' ')'
                     {
                         $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1));
-
+						char lex[256];
+						strcpy(lex, $1->lex);
                         if ($1->type.base == AMA_INVALID)
                             $1 = query_stack_id(sym_stack->next, $1->lex);
                         if ($1 == NULL || $1->type.base == AMA_INVALID)
-                            ret_val = IKS_ERROR_UNDECLARED;
+                            report_error(IKS_ERROR_UNDECLARED, lex), ret_val = IKS_ERROR_UNDECLARED;
                         else if ($1->type.is_vector)
-                            ret_val = IKS_ERROR_VECTOR;
+                            report_error(IKS_ERROR_VECTOR, lex), ret_val = IKS_ERROR_VECTOR;
                         else if (!$1->type.is_function)
-                            ret_val = IKS_ERROR_VARIABLE;
+                            report_error(IKS_ERROR_VARIABLE, lex), ret_val = IKS_ERROR_VARIABLE;
                         else if ($1->type.n_args != 0)
-                            ret_val = IKS_ERROR_MISSING_ARGS;
+                            report_error(IKS_ERROR_MISSING_ARGS, lex, $1->type.n_args, 0), ret_val = IKS_ERROR_MISSING_ARGS;
                         else
                         {
                             $$->semantic_type = $1->type.base;
@@ -342,14 +358,16 @@ func_call		: TK_IDENTIFICADOR '(' ')'
 				| TK_IDENTIFICADOR '(' args_list ')' 
 				    {
 				        $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1)); set_list_child_tree($$,1,$3);
+				        char lex[strlen($1->lex)+1];
+				        strcpy(lex, $1->lex);
 				        if ($1->type.base == AMA_INVALID)
 				            $1 = query_stack_id(sym_stack->next, $1->lex);
 			            if ($1 == NULL || $1->type.base == AMA_INVALID)
-                            ret_val = IKS_ERROR_UNDECLARED;
+                            report_error(IKS_ERROR_UNDECLARED, lex), ret_val = IKS_ERROR_UNDECLARED;
                         else if ($1->type.is_vector)
-                            ret_val = IKS_ERROR_VECTOR;
+                            report_error(IKS_ERROR_VECTOR, lex), ret_val = IKS_ERROR_VECTOR;
                         else if (!$1->type.is_function)
-                            ret_val = IKS_ERROR_VARIABLE;
+                            report_error(IKS_ERROR_VECTOR, lex), ret_val = IKS_ERROR_VARIABLE;
                         else
                         {
                             int n = 0;
@@ -362,9 +380,12 @@ func_call		: TK_IDENTIFICADOR '(' ')'
                                 else break;
                             }
                             if (n < $1->type.n_args)
-                                ret_val = IKS_ERROR_MISSING_ARGS;
+                                report_error(IKS_ERROR_MISSING_ARGS, $1->lex, $1->type.n_args, n), ret_val = IKS_ERROR_MISSING_ARGS;
                             else if (n > $1->type.n_args)
-                                { yyerror("Too many arguments to function"); ret_val = IKS_ERROR_EXCESS_ARGS; }
+                            {
+                                report_error(IKS_ERROR_EXCESS_ARGS, lex, $1->type.n_args, n);
+                                ret_val = IKS_ERROR_EXCESS_ARGS;
+                            }
                             else {
                                 args = $3->first;
                                 n = 0;
@@ -372,7 +393,10 @@ func_call		: TK_IDENTIFICADOR '(' ')'
                                 {
                                     // TODO change this to add coercion
                                     if (!is_compatible(args->semantic_type, $1->type.arg_types[n]))
-                                        ret_val = IKS_ERROR_WRONG_TYPE_ARGS;
+                                   	{
+                                   		report_error(IKS_ERROR_WRONG_TYPE_ARGS, $1->lex, n);
+                                   		ret_val = IKS_ERROR_WRONG_TYPE_ARGS;
+                               		}
                                     else if (args->semantic_type != $1->type.arg_types[n])
                                     {
                                         args->needs_coercion = 1;
@@ -402,18 +426,19 @@ expression		: simple_expression { $$ = $1;}
 							ret_val = IKS_ERROR_CHAR_TO_X;
 							$$->semantic_type = ($1->semantic_type == AMA_CHAR) ?
 							    $3->semantic_type : $1->semantic_type;
+						    report_error(ret_val);
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
 							ret_val = IKS_ERROR_STRING_TO_X;
 							$$->semantic_type = ($1->semantic_type == AMA_STRING) ?
 							    $3->semantic_type : $1->semantic_type;
+						    report_error(ret_val);
 						}
 						else
 						{
 							$$->semantic_type = coercion($1, $3);
 						}
-						printf("%d\n", $$->semantic_type);
 					}
 				| expression '-' expression
 					{
@@ -423,12 +448,14 @@ expression		: simple_expression { $$ = $1;}
 							ret_val = IKS_ERROR_CHAR_TO_X;
 							$$->semantic_type = ($1->semantic_type == AMA_CHAR) ?
 							    $3->semantic_type : $1->semantic_type;
+						    report_error(ret_val);
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
 							ret_val = IKS_ERROR_STRING_TO_X;
 							$$->semantic_type = ($1->semantic_type == AMA_STRING) ?
 							    $3->semantic_type : $1->semantic_type;
+						    report_error(ret_val);
 						}
 						else
 						{
@@ -443,12 +470,14 @@ expression		: simple_expression { $$ = $1;}
 							ret_val = IKS_ERROR_CHAR_TO_X;
 							$$->semantic_type = ($1->semantic_type == AMA_CHAR) ?
 							    $3->semantic_type : $1->semantic_type;
+						    report_error(ret_val);
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
 							ret_val = IKS_ERROR_STRING_TO_X;
 							$$->semantic_type = ($1->semantic_type == AMA_STRING) ?
 							    $3->semantic_type : $1->semantic_type;
+						    report_error(ret_val);
 						}
 						else
 						{
@@ -463,12 +492,14 @@ expression		: simple_expression { $$ = $1;}
 							ret_val = IKS_ERROR_CHAR_TO_X;
 							$$->semantic_type = ($1->semantic_type == AMA_CHAR) ?
 							    $3->semantic_type : $1->semantic_type;
+						    report_error(ret_val);
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
 							ret_val = IKS_ERROR_STRING_TO_X;
 							$$->semantic_type = ($1->semantic_type == AMA_STRING) ?
 							    $3->semantic_type : $1->semantic_type;
+						    report_error(ret_val);
 						}
 						else
 						{
@@ -481,14 +512,17 @@ expression		: simple_expression { $$ = $1;}
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
 							ret_val = IKS_ERROR_CHAR_TO_X;
+							report_error(ret_val);
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
 							ret_val = IKS_ERROR_STRING_TO_X;
+							report_error(ret_val);
 						}
 						else if ($1->semantic_type == AMA_BOOL || $3->semantic_type == AMA_BOOL)
 						{
 							ret_val = IKS_ERROR_WRONG_TYPE;
+							report_error(ret_val, "boolean");
 						}
 						else
 						{
@@ -502,14 +536,17 @@ expression		: simple_expression { $$ = $1;}
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
 							ret_val = IKS_ERROR_CHAR_TO_X;
+							report_error(ret_val);
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
 							ret_val = IKS_ERROR_STRING_TO_X;
+							report_error(ret_val);
 						}
 						else if ($1->semantic_type == AMA_BOOL || $3->semantic_type == AMA_BOOL)
 						{
 							ret_val = IKS_ERROR_WRONG_TYPE;
+							report_error(ret_val, "boolean");
 						}
 						else
 						{
@@ -523,14 +560,17 @@ expression		: simple_expression { $$ = $1;}
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
 							ret_val = IKS_ERROR_CHAR_TO_X;
+							report_error(ret_val);
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
 							ret_val = IKS_ERROR_STRING_TO_X;
+							report_error(ret_val);
 						}
 						else if ($1->semantic_type == AMA_BOOL || $3->semantic_type == AMA_BOOL)
 						{
 							ret_val = IKS_ERROR_WRONG_TYPE;
+							report_error(ret_val, "boolean");
 						}
 						else
 						{
@@ -544,14 +584,17 @@ expression		: simple_expression { $$ = $1;}
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
 							ret_val = IKS_ERROR_CHAR_TO_X;
+							report_error(ret_val);
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
 							ret_val = IKS_ERROR_STRING_TO_X;
+							report_error(ret_val);
 						}
 						else if ($1->semantic_type == AMA_BOOL || $3->semantic_type == AMA_BOOL)
 						{
 							ret_val = IKS_ERROR_WRONG_TYPE;
+							report_error(ret_val, "boolean");
 						}
 						else
 						{
@@ -565,10 +608,12 @@ expression		: simple_expression { $$ = $1;}
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
 							ret_val = IKS_ERROR_CHAR_TO_X;
+							report_error(ret_val);
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
 							ret_val = IKS_ERROR_STRING_TO_X;
+							report_error(ret_val);
 						}
 						else
 						{
@@ -582,10 +627,12 @@ expression		: simple_expression { $$ = $1;}
 						if ($1->semantic_type == AMA_CHAR || $3->semantic_type == AMA_CHAR)
 						{
 							ret_val = IKS_ERROR_CHAR_TO_X;
+							report_error(ret_val);
 						}
 						else if ($1->semantic_type == AMA_STRING || $3->semantic_type == AMA_STRING)
 						{
 							ret_val = IKS_ERROR_STRING_TO_X;
+							report_error(ret_val);
 						}
 						else
 						{
@@ -597,14 +644,14 @@ expression		: simple_expression { $$ = $1;}
 					{
 						$$ = new_tree_2(AST_LOGICO_E, $1, $3);
 						if ($1->semantic_type != AMA_BOOL || $3->semantic_type != AMA_BOOL)
-							ret_val = IKS_ERROR_WRONG_TYPE;
+							ret_val = IKS_ERROR_WRONG_TYPE, report_error(ret_val, "boolean");
 						$$->semantic_type = AMA_BOOL;
 					}
 				| expression TK_OC_OR expression
 					{
 						$$ = new_tree_2(AST_LOGICO_OU, $1, $3);
 						if ($1->semantic_type != AMA_BOOL || $3->semantic_type != AMA_BOOL)
-							ret_val = IKS_ERROR_WRONG_TYPE;
+							ret_val = IKS_ERROR_WRONG_TYPE,report_error(ret_val, "boolean");
 						$$->semantic_type = AMA_BOOL;
 					}
 				// | expression '&' expression { $$ = new_tree_2(AST_LOGICO_E, $1, $3);}
@@ -612,14 +659,14 @@ expression		: simple_expression { $$ = $1;}
 					{
 						$$ = new_tree_1(AST_ARIM_INVERSAO, $2);
 						if ($2->semantic_type != AMA_INT && $2->semantic_type != AMA_FLOAT)
-							ret_val = IKS_ERROR_WRONG_TYPE;
+							ret_val = IKS_ERROR_WRONG_TYPE, report_error(ret_val, "arithmetic");
 						$$->semantic_type = $2->semantic_type;
 					}
 				| '!' simple_expression
 					{
 						$$ = new_tree_1(AST_LOGICO_COMP_NEGACAO, $2);
 						if ($2->semantic_type != AMA_BOOL)
-							ret_val = IKS_ERROR_WRONG_TYPE;
+							ret_val = IKS_ERROR_WRONG_TYPE, report_error(ret_val, "boolean");
 						$$->semantic_type = AMA_BOOL;
 					}
 				;
@@ -629,19 +676,32 @@ simple_expression	: expression_leaf { $$ = $1;}
 expression_leaf : TK_IDENTIFICADOR
                     {
                         $$ = new_tree_valued(AST_IDENTIFICADOR, $1);
+                        char lex[256];
+                        strcpy(lex, $1->lex);
                         if ($1->type.base == AMA_INVALID)
                             $1 = query_stack_id(sym_stack->next, $1->lex);
                         if ($1 == NULL || $1->type.base == AMA_INVALID)
                         {
                             ret_val = IKS_ERROR_UNDECLARED;
+                            report_error(IKS_ERROR_UNDECLARED, lex);
                         }
                         $$->semantic_type = $1->type.base;
                     }
 				| TK_IDENTIFICADOR '[' expression ']'
 				{
-				    if (!is_compatible($3->semantic_type, AMA_INT))
+					char lex[256];
+					strcpy(lex, $1->lex);
+					if ($1->type.base == AMA_INVALID)
+						$1 = query_stack_id(sym_stack->next, $1->lex);
+					if ($1 == NULL || $1->type.base == AMA_INVALID)
+					{
+						ret_val = IKS_ERROR_UNDECLARED;
+						report_error(IKS_ERROR_UNDECLARED, lex);
+					}
+				    else if (!is_compatible($3->semantic_type, AMA_INT))
 				    {
 				        ret_val = IKS_ERROR_WRONG_TYPE;
+				        report_error(ret_val, "vector");
 			        }
 			        else if ($3->semantic_type != AMA_INT)
 			        {
