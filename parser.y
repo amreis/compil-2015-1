@@ -190,14 +190,54 @@ local_var_decl	: gen_local_var
 				| gen_local_var TK_OC_LE TK_IDENTIFICADOR
 				| gen_local_var TK_OC_LE init_literal
 				;
+
 gen_local_var	: simple_local_var | static_local_var ;
+
 simple_local_var: type TK_IDENTIFICADOR 
+                  {
+                    if ($2->type.base != AMA_INVALID)
+                    {
+                        ret_val = IKS_ERROR_DECLARED;
+                    }
+                    $2->type.base = $1;
+                  }
 				| TK_PR_CONST type TK_IDENTIFICADOR
+				  {
+				    if ($3->type.base != AMA_INVALID)
+				    {
+				        ret_val = IKS_ERROR_DECLARED;
+				    }
+				    $3->type.base = $2;
+			      }
 				;
 static_local_var: TK_PR_STATIC simple_local_var
 				;
 // ATRIBUIÇÃO
-assignment		: TK_IDENTIFICADOR '=' expression { $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);}
+assignment		: TK_IDENTIFICADOR '=' expression
+                {
+                    $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
+                    if ($1->type.base == AMA_INVALID)
+                    {
+                        ret_val = IKS_ERROR_UNDECLARED;
+                    }
+                    else if ($1->type.is_vector)
+                    {
+                        ret_val = IKS_ERROR_VECTOR;
+                    }
+                    else if ($1->type.is_function)
+                    {
+                        ret_val = IKS_ERROR_FUNCTION;
+                    }
+                    else if (!is_compatible($1->type.base, $3->semantic_type))
+                    {
+                        ret_val = IKS_ERROR_WRONG_TYPE;
+                    }
+                    else if ($1->type.base != $3->semantic_type)
+                    {
+                        $3->needs_coercion = 1;
+                        $3->coerced_type = $1->type.base;
+                    }
+                }
 				| TK_IDENTIFICADOR '[' expression ']' '=' expression { $$ = new_tree_2(AST_ATRIBUICAO,new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3), $6);}
 				;
 // ENTRADA
