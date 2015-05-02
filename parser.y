@@ -469,7 +469,7 @@ expression_leaf   : TK_IDENTIFICADOR
                   | TK_IDENTIFICADOR '[' expression ']'
                       {
                         $$ = new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
-                        $1 = query_stack_var(sym_stack, $1->lex);
+                        $1 = query_stack_vector(sym_stack, $1->lex);
                         if($1 != NULL)
                             $$->semantic_type = $1->type.base;
                         coerce($3, AMA_INT);
