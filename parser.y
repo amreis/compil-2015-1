@@ -385,13 +385,8 @@ output_statement: TK_PR_OUTPUT output_list
                     int count = 0;
                     while (list != NULL)
                     {
-                        if (list->value->token_type != SIMBOLO_LITERAL_STRING &&
-                            list->value->token_type != SIMBOLO_INVALIDO)
-                        {
-                            ret_val = IKS_ERROR_WRONG_PAR_OUTPUT;
-                            report_error(IKS_ERROR_WRONG_PAR_OUTPUT, count);
-                        }
-                        else if (!is_compatible(list->semantic_type, AMA_INT))
+                        if ((list->value == NULL || list->value->token_type != SIMBOLO_LITERAL_STRING) &&
+                            !is_compatible(list->semantic_type, AMA_INT))
                         {
                             ret_val = IKS_ERROR_WRONG_PAR_OUTPUT;
                             report_error(IKS_ERROR_WRONG_PAR_OUTPUT, count);
