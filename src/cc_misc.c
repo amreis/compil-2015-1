@@ -1,13 +1,5 @@
 #include "cc_misc.h"
-#include "cc_tree.h"
-#include "cc_stack.h"
-#include "cc_tree.h"
-#include "errors.h"
-#include <stdarg.h>
 
-extern unsigned long int line_num;
-extern comp_stack_t* sym_stack;
-extern comp_tree_t* final_ast;
 int getLineNumber (void)
 {
   //implemente esta função
@@ -21,6 +13,8 @@ void yyerror (char const *mensagem)
 
 void report_error(int errcode, ...)
 {
+	if(first_error == IKS_SUCCESS)
+		first_error = errcode;
     va_list a_list;
 	va_start(a_list, errcode);
     char buffer[100];
