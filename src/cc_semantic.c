@@ -15,10 +15,10 @@ void yyerror (char const *mensagem)
 
 void report_error(int errcode, ...)
 {
-	if(first_error == IKS_SUCCESS)
-		first_error = errcode;
     va_list a_list;
 	va_start(a_list, errcode);
+	if(first_error == IKS_SUCCESS)
+		first_error = errcode;
     char buffer[100];
     char* arg0;
     int arg1, arg2;
@@ -45,8 +45,7 @@ void report_error(int errcode, ...)
 	sprintf(buffer, "The identifier %s must be used in a function call", arg0);
 	break;
 	case IKS_ERROR_WRONG_TYPE:
-	arg0 = va_arg(a_list, char*);
-	sprintf(buffer, "Wrong types in %s expression", arg0);
+	sprintf(buffer, "Wrong types in the expression");
 	break;
 	case IKS_ERROR_STRING_TO_X:
 	sprintf(buffer, "Invalid conversion from string");
@@ -87,58 +86,53 @@ void report_error(int errcode, ...)
 	yyerror(buffer);
 }
 
-// Returns the final type
-int coercion (comp_tree_t *arg1, comp_tree_t *arg2)
+void coerce(comp_tree_t *arg, int to_type)
 {
-	if (arg1->semantic_type == arg2->semantic_type)
-		return arg1->semantic_type;
-	if (arg1->semantic_type == AMA_FLOAT && arg2->semantic_type == AMA_INT)
-	{
-		arg2->needs_coercion = 1;
-		arg2->coerced_type = AMA_FLOAT;
-		return AMA_FLOAT;
+	int from_type = arg->semantic_type;
+	if(from_type == to_type)
+		arg->needs_coercion = 0;
+	else {
+		arg->needs_coercion = 1;
+		if(from_type == AMA_CHAR)
+			report_error(IKS_ERROR_CHAR_TO_X);
+		else if(from_type == AMA_STRING)
+			report_error(IKS_ERROR_STRING_TO_X);
+		else if(to_type == AMA_CHAR || to_type == AMA_STRING) // TODO: get a more "correct" condition here
+			report_error(IKS_ERROR_WRONG_TYPE);
 	}
-	else if( arg1->semantic_type == AMA_INT && arg2->semantic_type == AMA_FLOAT)
-	{
-		arg1->needs_coercion = 1;
-		arg1->coerced_type = AMA_FLOAT;
-		return AMA_FLOAT;
-	}
-	else if (arg1->semantic_type == AMA_BOOL && arg2->semantic_type == AMA_INT)
-	{
-		arg1->needs_coercion = 1;
-		arg1->coerced_type = AMA_INT;
-		return AMA_INT;
-	}
-	else if( arg1->semantic_type == AMA_INT && arg2->semantic_type == AMA_BOOL)
-	{
-		arg2->needs_coercion = 1;
-		arg2->coerced_type = AMA_INT;
-		return AMA_INT;
-	}
-	else if (arg1->semantic_type == AMA_BOOL && arg2->semantic_type == AMA_FLOAT)
-	{
-		arg1->needs_coercion = 1;
-		arg1->coerced_type = AMA_FLOAT;
-		return AMA_FLOAT;
-	}
-	else if( arg1->semantic_type == AMA_FLOAT && arg2->semantic_type == AMA_BOOL)
-	{
-		arg2->needs_coercion = 1;
-		arg2->coerced_type = AMA_FLOAT;
-		return AMA_FLOAT;
-	}
-	return AMA_INVALID;
+	arg->coerced_type = to_type;
 }
 
-int is_compatible(int expr_type, int required_type)
+void try_to_coerce(comp_tree_t *arg, int to_type, int wrong_type_error, ...)
 {
-	if (expr_type == required_type) return 1;
-	if (expr_type == AMA_INT && (required_type == AMA_FLOAT || required_type == AMA_BOOL))
-		return 1;
-	if (expr_type == AMA_BOOL && (required_type == AMA_FLOAT || required_type == AMA_INT))
-		return 1;
-	if (expr_type == AMA_FLOAT && (required_type == AMA_INT || required_type == AMA_BOOL))
-		return 1;
-	return 0;
+	va_list a_list;
+	va_start(a_list, wrong_type_error);
+	int from_type = arg->semantic_type;
+	if(from_type == to_type)
+		arg->needs_coercion = 0;
+	else {
+		arg->needs_coercion = 1;
+		if(from_type == AMA_CHAR)
+			report_error(wrong_type_error, a_list);
+		else if(from_type == AMA_STRING)
+			report_error(wrong_type_error, a_list);
+		else if(to_type == AMA_CHAR || to_type == AMA_STRING) // TODO: get a more "correct" condition here
+			report_error(wrong_type_error, a_list);
+	}
+	arg->coerced_type = to_type;
+}
+
+void coerce_dict_entry(comp_dict_item_t *arg, int to_type)
+{
+	int from_type = arg->type.base;
+	if(from_type != to_type)
+	{
+		if(from_type == AMA_CHAR)
+			report_error(IKS_ERROR_CHAR_TO_X);
+		else if(from_type == AMA_STRING)
+			report_error(IKS_ERROR_STRING_TO_X);
+		else if(to_type == AMA_CHAR || to_type == AMA_STRING) // TODO: get a more "correct" condition here
+			report_error(IKS_ERROR_WRONG_TYPE);
+	}
+	// TODO: actually coerce, or mark for coercion
 }

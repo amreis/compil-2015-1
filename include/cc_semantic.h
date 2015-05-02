@@ -36,8 +36,9 @@ int first_error;
 int getLineNumber (void);
 void yyerror (char const *mensagem);
 void report_error(int errcode, ...);
-int coercion (comp_tree_t *arg1, comp_tree_t *arg2);
-int is_compatible(int expr_type, int required_type);
 
+void coerce(comp_tree_t *arg, int to_type);
+void try_to_coerce(comp_tree_t *arg, int to_type, int wrong_type_error, ...);
+void coerce_dict_entry(comp_dict_item_t *arg, int to_type);
 
 #endif
