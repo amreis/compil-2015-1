@@ -73,7 +73,7 @@ comp_dict_item_t* current_function = NULL;
 %type<ast> literal expression_leaf expression simple_expression flow_control 
 %type<ast> do_while while if_then if_else command_no_then  while_no_then if_else_no_then command simple_command command_block command_list
 %type<ast> return_statement assignment input_statement output_statement
-%type<ast> func_call args_list output_list program full_program gen_func_decl static_func_decl simple_func_decl
+%type<ast> func_call args_list nonempty_args_list output_list program full_program gen_func_decl static_func_decl simple_func_decl
 
 %type<type> type
 %type<dict_entry> simple_var_decl vector_var_decl simple_local_var static_local_var gen_local_var init_literal
@@ -264,9 +264,7 @@ output_statement: TK_PR_OUTPUT output_list
                     {
                         if (list->value == NULL || list->value->token_type != SIMBOLO_LITERAL_STRING)
                             try_to_coerce(list, AMA_INT, IKS_ERROR_WRONG_PAR_OUTPUT, count);
-                        if (list->next_type == NEXT_OUTPUT)
-                            count++, list = list->next;
-                        else break;
+                        list = list->next;
                     }
                   }
                 ;
@@ -283,55 +281,41 @@ return_statement: TK_PR_RETURN expression
                 ;
 
 // CHAMADA DE FUNÇÃO
-func_call       : TK_IDENTIFICADOR '(' ')'
-                    {
-                        $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1));
-                        $1 = query_stack_function(sym_stack, $1->lex);
-                        if ($1 != NULL)
-                        {
-                            if ($1->type.n_args != 0)
-                                report_error(IKS_ERROR_MISSING_ARGS, $1->lex, $1->type.n_args, 0);
-                            else
-                                $$->semantic_type = $1->type.base;
-                        }
-                    }
-                | TK_IDENTIFICADOR '(' args_list ')' 
+func_call       : TK_IDENTIFICADOR '(' args_list ')' 
                     {
                         $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1)); set_list_child_tree($$,1,$3);
                         $1 = query_stack_function(sym_stack, $1->lex);
-                        if($1 != NULL)
+                        if ($1 != NULL)
                         {
                             int n = 0;
-                            comp_tree_t* args = $3->first;
+                            comp_tree_t* args = $$->child[1];
                             while (args != NULL)
                             {
                                 n++;
-                                if (args->next_type == NEXT_ARGUMENT)
-                                    args = args->next;
-                                else break;
+                                args = args->next;
                             }
                             if (n < $1->type.n_args)
                                 report_error(IKS_ERROR_MISSING_ARGS, $1->lex, $1->type.n_args, n);
                             else if (n > $1->type.n_args)
                                 report_error(IKS_ERROR_EXCESS_ARGS, $1->lex, $1->type.n_args, n);
                             else {
-                                args = $3->first;
+                                args = $$->child[1];
                                 n = 0;
                                 while (args != NULL)
                                 {
                                     try_to_coerce(args, $1->type.arg_types[n], IKS_ERROR_WRONG_TYPE_ARGS, $1->lex, n);
-
-                                    if (args->next_type != NEXT_ARGUMENT)
-                                        break;
-                                    n++; args = args->next;
+                                    args = args->next;
                                 }
                             }
                             $$->semantic_type = $1->type.base;
                         }
                     }
                 ;
-args_list       : expression { $$ = $1; }
-                | args_list ',' expression { $$ = append_next_tree($1, NEXT_ARGUMENT, $3); }
+args_list       : nonempty_args_list { $$ = $1; }
+                | { $$ = NULL; }
+                ;
+nonempty_args_list : expression { $$ = $1; }
+                | nonempty_args_list ',' expression { $$ = append_next_tree($1, NEXT_ARGUMENT, $3); }
                 ;
 
 
@@ -479,18 +463,14 @@ expression_leaf   : TK_IDENTIFICADOR
                       {
                         $$ = new_tree_valued(AST_IDENTIFICADOR, $1);
                         $1 = query_stack_var(sym_stack, $1->lex);
-                        if($1 == NULL)
-                            $$->semantic_type = AMA_INVALID;
-                        else
+                        if($1 != NULL)
                             $$->semantic_type = $1->type.base;
                       }
                   | TK_IDENTIFICADOR '[' expression ']'
                       {
                         $$ = new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
                         $1 = query_stack_var(sym_stack, $1->lex);
-                        if($1 == NULL)
-                            $$->semantic_type = AMA_INVALID;
-                        else
+                        if($1 != NULL)
                             $$->semantic_type = $1->type.base;
                         coerce($3, AMA_INT);
                       }
