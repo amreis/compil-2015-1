@@ -46,11 +46,6 @@ comp_dict_item_t* query_stack(comp_stack_t* stack, const char* s, int sym_type)
     return NULL;
 }
 
-comp_dict_item_t* query_stack_id(comp_stack_t* stack, const char* key)
-{
-    return query_stack(stack, key, SIMBOLO_IDENTIFICADOR);
-}
-
 void free_stack_item(comp_stack_t* stack)
 {
     if (stack == NULL) return;

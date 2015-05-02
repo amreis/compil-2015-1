@@ -2,6 +2,7 @@
 #define __SEMANTIC_H
 
 #include "cc_tree.h"
+#include "cc_stack.h"
 #include <stdarg.h>
 
 
@@ -40,5 +41,9 @@ void report_error(int errcode, ...);
 void coerce(comp_tree_t *arg, int to_type);
 void try_to_coerce(comp_tree_t *arg, int to_type, int wrong_type_error, ...);
 void coerce_dict_entry(comp_dict_item_t *arg, int to_type);
+
+comp_dict_item_t* query_stack_var(comp_stack_t* stack, const char* key);
+comp_dict_item_t* query_stack_vector(comp_stack_t* stack, const char* key);
+comp_dict_item_t* query_stack_function(comp_stack_t* stack, const char* key);
 
 #endif

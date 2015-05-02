@@ -86,6 +86,7 @@ void report_error(int errcode, ...)
 	yyerror(buffer);
 }
 
+
 void coerce(comp_tree_t *arg, int to_type)
 {
 	int from_type = arg->semantic_type;
@@ -135,4 +136,44 @@ void coerce_dict_entry(comp_dict_item_t *arg, int to_type)
 			report_error(IKS_ERROR_WRONG_TYPE);
 	}
 	// TODO: actually coerce, or mark for coercion
+}
+
+
+comp_dict_item_t* query_stack_var(comp_stack_t* stack, const char* key)
+{
+	comp_dict_item_t* ret = query_stack(stack, key, SIMBOLO_IDENTIFICADOR);
+	if (ret == NULL || ret->type.base == AMA_INVALID)
+		report_error(IKS_ERROR_UNDECLARED, key);
+	else if (ret->type.is_vector)
+		report_error(IKS_ERROR_VECTOR, key);
+	else if (ret->type.is_function)
+		report_error(IKS_ERROR_FUNCTION, key);
+	else return ret;
+	return NULL;
+}
+
+comp_dict_item_t* query_stack_vector(comp_stack_t* stack, const char* key)
+{
+	comp_dict_item_t* ret = query_stack(stack, key, SIMBOLO_IDENTIFICADOR);
+	if (ret == NULL || ret->type.base == AMA_INVALID)
+		report_error(IKS_ERROR_UNDECLARED, key);
+	else if (!ret->type.is_vector)
+		report_error(IKS_ERROR_VARIABLE, key);
+	else if (ret->type.is_function)
+		report_error(IKS_ERROR_FUNCTION, key);
+	else return ret;
+	return NULL;
+}
+
+comp_dict_item_t* query_stack_function(comp_stack_t* stack, const char* key)
+{
+	comp_dict_item_t* ret = query_stack(stack, key, SIMBOLO_IDENTIFICADOR);
+	if (ret == NULL || ret->type.base == AMA_INVALID)
+		report_error(IKS_ERROR_UNDECLARED, key);
+	else if (ret->type.is_vector)
+		report_error(IKS_ERROR_VECTOR, key);
+	else if (!ret->type.is_function)
+		report_error(IKS_ERROR_VARIABLE, key);
+	else return ret;
+	return NULL;
 }

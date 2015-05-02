@@ -196,17 +196,9 @@ invalid_stmt    : gen_func_decl { yyerror("Illegal function declaration ending")
 local_var_decl : gen_local_var
                | gen_local_var TK_OC_LE TK_IDENTIFICADOR
                    {
-                     char lex[256];
-                     strcpy(lex, $3->lex);
-                     if ($3->type.base == AMA_INVALID)
-                         $3 = query_stack_id(sym_stack->next, $3->lex);
-                     if ($3 == NULL || $3->type.base == AMA_INVALID)
-                         report_error(IKS_ERROR_UNDECLARED, lex);
-                     else if ($3->type.is_vector)
-                         report_error(IKS_ERROR_VECTOR, lex);
-                     else if ($3->type.is_function)
-                         report_error(IKS_ERROR_FUNCTION, lex);
-                     coerce_dict_entry($3, $1->type.base);
+                     $3 = query_stack_var(sym_stack, $3->lex);
+                     if ($3 != NULL)
+                         coerce_dict_entry($3, $1->type.base);
                    }
                | gen_local_var TK_OC_LE init_literal
                    {
@@ -237,34 +229,16 @@ static_local_var : TK_PR_STATIC simple_local_var { $$ = $2; }
 assignment : TK_IDENTIFICADOR '=' expression
                {
                  $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
-                 char lex[256];
-                 strcpy(lex, $1->lex);
-                 if ($1->type.base == AMA_INVALID)
-                 {
-                     $1 = query_stack_id(sym_stack->next, $1->lex);
-                 }
-                 if ($1 == NULL || $1->type.base == AMA_INVALID)
-                     report_error(IKS_ERROR_UNDECLARED, lex);
-                 else if ($1->type.is_vector)
-                     report_error(IKS_ERROR_VECTOR, lex);
-                 else if ($1->type.is_function)
-                     report_error(IKS_ERROR_FUNCTION, lex);
-                 else coerce($3, $1->type.base);
+                 $1 = query_stack_var(sym_stack, $1->lex);
+                 if ($1 != NULL)
+                     coerce($3, $1->type.base);
                }
            | TK_IDENTIFICADOR '[' expression ']' '=' expression
                {
                  $$ = new_tree_2(AST_ATRIBUICAO,new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3), $6);
-                 char lex[256];
-                 strcpy(lex, $1->lex);
-                 if ($1->type.base == AMA_INVALID)
-                     $1 = query_stack_id(sym_stack->next, $1->lex);
-                 if ($1 == NULL || $1->type.base == AMA_INVALID)
-                     report_error(IKS_ERROR_UNDECLARED, lex);
-                 else if ($1->type.is_function)
-                     report_error(IKS_ERROR_FUNCTION, lex);
-                 else if (!$1->type.is_vector)
-                     report_error(IKS_ERROR_VARIABLE, lex);
-                 else {
+                 $1 = query_stack_vector(sym_stack, $1->lex);
+                 if($1 != NULL)
+                 {
                      // Check type of the expression between brackets.
                      coerce($3, AMA_INT);
                      // Check type of the assignment expression
@@ -309,40 +283,23 @@ return_statement: TK_PR_RETURN expression
                 ;
 
 // CHAMADA DE FUNÇÃO
-func_call        : TK_IDENTIFICADOR '(' ')'
+func_call       : TK_IDENTIFICADOR '(' ')'
                     {
                         $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1));
-                        char lex[256];
-                        strcpy(lex, $1->lex);
-                        if ($1->type.base == AMA_INVALID)
-                            $1 = query_stack_id(sym_stack->next, $1->lex);
-                        if ($1 == NULL || $1->type.base == AMA_INVALID)
-                            report_error(IKS_ERROR_UNDECLARED, lex);
-                        else if ($1->type.is_vector)
-                            report_error(IKS_ERROR_VECTOR, lex);
-                        else if (!$1->type.is_function)
-                            report_error(IKS_ERROR_VARIABLE, lex);
-                        else if ($1->type.n_args != 0)
-                            report_error(IKS_ERROR_MISSING_ARGS, lex, $1->type.n_args, 0);
-                        else
+                        $1 = query_stack_function(sym_stack, $1->lex);
+                        if ($1 != NULL)
                         {
-                            $$->semantic_type = $1->type.base;
+                            if ($1->type.n_args != 0)
+                                report_error(IKS_ERROR_MISSING_ARGS, $1->lex, $1->type.n_args, 0);
+                            else
+                                $$->semantic_type = $1->type.base;
                         }
                     }
                 | TK_IDENTIFICADOR '(' args_list ')' 
                     {
                         $$ = new_tree_1(AST_CHAMADA_DE_FUNCAO, new_tree_valued(AST_IDENTIFICADOR, $1)); set_list_child_tree($$,1,$3);
-                        char lex[strlen($1->lex)+1];
-                        strcpy(lex, $1->lex);
-                        if ($1->type.base == AMA_INVALID)
-                            $1 = query_stack_id(sym_stack->next, $1->lex);
-                        if ($1 == NULL || $1->type.base == AMA_INVALID)
-                            report_error(IKS_ERROR_UNDECLARED, lex);
-                        else if ($1->type.is_vector)
-                            report_error(IKS_ERROR_VECTOR, lex);
-                        else if (!$1->type.is_function)
-                            report_error(IKS_ERROR_VECTOR, lex);
-                        else
+                        $1 = query_stack_function(sym_stack, $1->lex);
+                        if($1 != NULL)
                         {
                             int n = 0;
                             comp_tree_t* args = $3->first;
@@ -356,7 +313,7 @@ func_call        : TK_IDENTIFICADOR '(' ')'
                             if (n < $1->type.n_args)
                                 report_error(IKS_ERROR_MISSING_ARGS, $1->lex, $1->type.n_args, n);
                             else if (n > $1->type.n_args)
-                                report_error(IKS_ERROR_EXCESS_ARGS, lex, $1->type.n_args, n);
+                                report_error(IKS_ERROR_EXCESS_ARGS, $1->lex, $1->type.n_args, n);
                             else {
                                 args = $3->first;
                                 n = 0;
@@ -369,8 +326,8 @@ func_call        : TK_IDENTIFICADOR '(' ')'
                                     n++; args = args->next;
                                 }
                             }
+                            $$->semantic_type = $1->type.base;
                         }
-                        $$->semantic_type = $1->type.base;
                     }
                 ;
 args_list       : expression { $$ = $1; }
@@ -521,12 +478,7 @@ simple_expression : expression_leaf { $$ = $1;}
 expression_leaf   : TK_IDENTIFICADOR
                       {
                         $$ = new_tree_valued(AST_IDENTIFICADOR, $1);
-                        char lex[256];
-                        strcpy(lex, $1->lex);
-                        if ($1->type.base == AMA_INVALID)
-                            $1 = query_stack_id(sym_stack->next, $1->lex);
-                        if ($1 == NULL || $1->type.base == AMA_INVALID)
-                            report_error(IKS_ERROR_UNDECLARED, lex);
+                        $1 = query_stack_var(sym_stack, $1->lex);
                         if($1 == NULL)
                             $$->semantic_type = AMA_INVALID;
                         else
@@ -534,19 +486,13 @@ expression_leaf   : TK_IDENTIFICADOR
                       }
                   | TK_IDENTIFICADOR '[' expression ']'
                       {
-                        char lex[256];
-                        strcpy(lex, $1->lex);
-                        if ($1->type.base == AMA_INVALID)
-                            $1 = query_stack_id(sym_stack->next, $1->lex);
-                        if ($1 == NULL || $1->type.base == AMA_INVALID)
-                            report_error(IKS_ERROR_UNDECLARED, lex);
-                        else
-                            coerce($3, AMA_INT);
                         $$ = new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
+                        $1 = query_stack_var(sym_stack, $1->lex);
                         if($1 == NULL)
                             $$->semantic_type = AMA_INVALID;
                         else
                             $$->semantic_type = $1->type.base;
+                        coerce($3, AMA_INT);
                       }
                   | literal { $$ = $1; }
                   | func_call { $$ = $1; }
