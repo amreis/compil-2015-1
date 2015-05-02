@@ -39,7 +39,7 @@ comp_dict_item_t* query_stack(comp_stack_t* stack, const char* s, int sym_type)
 
         comp_dict_item_t* item = query_dict_noncreate(stack->item->children[sym_type], s);
 
-        if (item != NULL)
+        if (item != NULL && item->type.base != AMA_INVALID)
             return item;
         else stack = stack->next;
     }
