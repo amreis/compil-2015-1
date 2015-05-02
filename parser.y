@@ -12,14 +12,13 @@
 #include "cc_dict.h"
 #include "cc_stack.h"
 #include "cc_param_list.h"
-#include "errors.h"
+#include "cc_semantic.h"
 #include <stdlib.h>
 #include <string.h>
 comp_tree_t* final_ast;
 
 extern comp_stack_t* sym_stack;
 
-int first_error = IKS_SUCCESS;
 // Since we don't allow functions to be declared inside functions, a single
 // pointer does the trick, so that we know which function we are in.
 comp_dict_item_t* current_function = NULL;
