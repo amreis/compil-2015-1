@@ -278,7 +278,6 @@ static_local_var: TK_PR_STATIC simple_local_var { $$ = $2; }
 // ATRIBUIÇÃO
 assignment        : TK_IDENTIFICADOR '=' expression
                 {
-                    $1 = query_stack_id(sym_stack, $1->lex);
                     $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
                     char lex[256];
                     strcpy(lex, $1->lex);
