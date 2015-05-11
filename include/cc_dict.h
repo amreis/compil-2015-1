@@ -39,6 +39,7 @@ typedef struct _comp_dict_item_t
         bool is_function;
         int n_args;
         int *arg_types;
+        char sealed;
     } type;
 } comp_dict_item_t;
 

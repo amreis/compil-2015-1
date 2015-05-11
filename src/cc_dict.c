@@ -67,6 +67,7 @@ comp_dict_item_t* query_dict(comp_dict_t* t, const char* s)
         t->val->type.is_function = 0;
         t->val->type.n_args = -1;
         t->val->type.arg_types = NULL;
+        t->val->type.sealed = 0;
 	}
 	return t->val;
 }
