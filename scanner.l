@@ -127,15 +127,6 @@ false		{
 {ALFABET}{ALFANUM}* {
 				comp_dict_item_t* item;
 				// if ((item = query_stack_id(sym_stack, yytext)) == NULL)
-
-				if ((item = query_stack(sym_stack, yytext, SIMBOLO_IDENTIFICADOR)) != NULL)
-				{
-					if (item->type.sealed)
-					{
-						yylval.valor_simbolo_lexico = item;
-						return TK_IDENTIFICADOR;
-					}
-				}
 				item = query_dict(sym_stack->item->children[SIMBOLO_IDENTIFICADOR], yytext);
 				if(item->token_type == SIMBOLO_INVALIDO)
 				{

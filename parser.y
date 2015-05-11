@@ -210,14 +210,14 @@ gen_local_var    : simple_local_var { $$ = $1; } | static_local_var { $$ = $1; }
 
 simple_local_var : type TK_IDENTIFICADOR 
                      {
-                       if ($2->type.base != AMA_INVALID)
+                       if ($2->type.sealed || $2->type.base != AMA_INVALID)
                            report_error(IKS_ERROR_DECLARED, $2->lex);
                        $2->type.base = $1;
                        $$ = $2;
                      }
                  | TK_PR_CONST type TK_IDENTIFICADOR
                      {
-                       if ($3->type.base != AMA_INVALID)
+                       if ($3->type.sealed || $3->type.base != AMA_INVALID)
                            report_error(IKS_ERROR_DECLARED, $3->lex);
                        $3->type.base = $2;
                        $$ = $3;
@@ -229,17 +229,24 @@ static_local_var : TK_PR_STATIC simple_local_var { $$ = $2; }
 assignment : TK_IDENTIFICADOR '=' expression
                {
                  $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
+                 comp_dict_item_t* entry_cur_level = $1;
                  $1 = query_stack_var(sym_stack, $1->lex);
                  if ($1 != NULL)
-                     $1->type.sealed = 1, coerce($3, $1->type.base);
+                 {
+                     entry_cur_level->type.sealed = 1;
+                     $1->type.sealed = 1;
+                     coerce($3, $1->type.base);
+                 }
                }
            | TK_IDENTIFICADOR '[' expression ']' '=' expression
                {
                  $$ = new_tree_2(AST_ATRIBUICAO,new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3), $6);
+                 comp_dict_item_t* entry_cur_level = $1;
                  $1 = query_stack_vector(sym_stack, $1->lex);
-                 if($1 != NULL)
+                 if ($1 != NULL)
                  {
                      $1->type.sealed = 1;
+                     entry_cur_level->type.sealed = 1;
                      // Check type of the expression between brackets.
                      coerce($3, AMA_INT);
                      // Check type of the assignment expression
@@ -463,16 +470,26 @@ simple_expression : expression_leaf { $$ = $1;}
 expression_leaf   : TK_IDENTIFICADOR
                       {
                         $$ = new_tree_valued(AST_IDENTIFICADOR, $1);
+                        comp_dict_item_t* entry_cur_level = $1;
                         $1 = query_stack_var(sym_stack, $1->lex);
-                        if($1 != NULL)
+                        if ($1 != NULL)
+                        {
+                            entry_cur_level->type.sealed = 1;
+                            $1->type.sealed = 1;
                             $$->semantic_type = $1->type.base;
+                        }
                       }
                   | TK_IDENTIFICADOR '[' expression ']'
                       {
                         $$ = new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
+                        comp_dict_item_t* entry_cur_level = $1;
                         $1 = query_stack_vector(sym_stack, $1->lex);
-                        if($1 != NULL)
+                        if ($1 != NULL)
+                        {
+                            entry_cur_level->type.sealed = 1;
+                            $1->type.sealed = 1;
                             $$->semantic_type = $1->type.base;
+                        }
                         coerce($3, AMA_INT);
                       }
                   | literal { $$ = $1; }
