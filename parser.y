@@ -231,7 +231,7 @@ assignment : TK_IDENTIFICADOR '=' expression
                  $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
                  $1 = query_stack_var(sym_stack, $1->lex);
                  if ($1 != NULL)
-                     coerce($3, $1->type.base);
+                     $1->type.sealed = 1, coerce($3, $1->type.base);
                }
            | TK_IDENTIFICADOR '[' expression ']' '=' expression
                {
@@ -239,6 +239,7 @@ assignment : TK_IDENTIFICADOR '=' expression
                  $1 = query_stack_vector(sym_stack, $1->lex);
                  if($1 != NULL)
                  {
+                     $1->type.sealed = 1;
                      // Check type of the expression between brackets.
                      coerce($3, AMA_INT);
                      // Check type of the assignment expression
