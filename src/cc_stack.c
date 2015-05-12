@@ -36,9 +36,9 @@ comp_dict_item_t* query_stack(comp_stack_t* stack, const char* s, int sym_type)
     if (!(sym_type >= SIMBOLO_LITERAL_INT && sym_type <= SIMBOLO_IDENTIFICADOR)) return NULL;
     while (stack != NULL)
     {
-
-        comp_dict_item_t* item = query_dict_noncreate(stack->item->children[sym_type], s);
-
+        comp_dict_item_t* item = query_dict(stack->item->children[sym_type], s);
+		if (item != NULL)
+			item->type.sealed = 1;
         if (item != NULL && item->type.base != AMA_INVALID)
             return item;
         else stack = stack->next;

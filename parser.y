@@ -232,11 +232,7 @@ assignment : TK_IDENTIFICADOR '=' expression
                  comp_dict_item_t* entry_cur_level = $1;
                  $1 = query_stack_var(sym_stack, $1->lex);
                  if ($1 != NULL)
-                 {
-                     entry_cur_level->type.sealed = 1;
-                     $1->type.sealed = 1;
                      coerce($3, $1->type.base);
-                 }
                }
            | TK_IDENTIFICADOR '[' expression ']' '=' expression
                {
@@ -245,8 +241,6 @@ assignment : TK_IDENTIFICADOR '=' expression
                  $1 = query_stack_vector(sym_stack, $1->lex);
                  if ($1 != NULL)
                  {
-                     $1->type.sealed = 1;
-                     entry_cur_level->type.sealed = 1;
                      // Check type of the expression between brackets.
                      coerce($3, AMA_INT);
                      // Check type of the assignment expression
@@ -473,11 +467,7 @@ expression_leaf   : TK_IDENTIFICADOR
                         comp_dict_item_t* entry_cur_level = $1;
                         $1 = query_stack_var(sym_stack, $1->lex);
                         if ($1 != NULL)
-                        {
-                            entry_cur_level->type.sealed = 1;
-                            $1->type.sealed = 1;
                             $$->semantic_type = $1->type.base;
-                        }
                       }
                   | TK_IDENTIFICADOR '[' expression ']'
                       {
@@ -485,11 +475,7 @@ expression_leaf   : TK_IDENTIFICADOR
                         comp_dict_item_t* entry_cur_level = $1;
                         $1 = query_stack_vector(sym_stack, $1->lex);
                         if ($1 != NULL)
-                        {
-                            entry_cur_level->type.sealed = 1;
-                            $1->type.sealed = 1;
                             $$->semantic_type = $1->type.base;
-                        }
                         coerce($3, AMA_INT);
                       }
                   | literal { $$ = $1; }
