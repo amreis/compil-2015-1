@@ -371,6 +371,7 @@ expression : simple_expression { $$ = $1;}
            | expression '<' expression
                {
                  $$ = new_tree_2(AST_LOGICO_COMP_L, $1, $3);
+                 $$->semantic_type = AMA_BOOL;
                  int coerced_type;
                  if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
                      coerced_type = AMA_FLOAT;
@@ -382,6 +383,7 @@ expression : simple_expression { $$ = $1;}
            | expression '>' expression
                {
                  $$ = new_tree_2(AST_LOGICO_COMP_G, $1, $3);
+                 $$->semantic_type = AMA_BOOL;
                  int coerced_type;
                  if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
                      coerced_type = AMA_FLOAT;
@@ -393,6 +395,7 @@ expression : simple_expression { $$ = $1;}
            | expression TK_OC_LE expression
                {
                  $$ = new_tree_2(AST_LOGICO_COMP_LE, $1, $3);
+                 $$->semantic_type = AMA_BOOL;
                  int coerced_type;
                  if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
                      coerced_type = AMA_FLOAT;
@@ -404,7 +407,8 @@ expression : simple_expression { $$ = $1;}
            | expression TK_OC_GE expression
                {
                  $$ = new_tree_2(AST_LOGICO_COMP_GE, $1, $3);
-                        int coerced_type;
+                 $$->semantic_type = AMA_BOOL;
+                 int coerced_type;
                  if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
                      coerced_type = AMA_FLOAT;
                  else
@@ -415,6 +419,7 @@ expression : simple_expression { $$ = $1;}
            | expression TK_OC_EQ expression
                {
                  $$ = new_tree_2(AST_LOGICO_COMP_IGUAL, $1, $3);
+                 $$->semantic_type = AMA_BOOL;
                  int coerced_type;
                  if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
                      coerced_type = AMA_FLOAT;
@@ -426,6 +431,7 @@ expression : simple_expression { $$ = $1;}
            | expression TK_OC_NE expression
                {
                  $$ = new_tree_2(AST_LOGICO_COMP_DIF, $1, $3);
+                 $$->semantic_type = AMA_BOOL;
                  int coerced_type;
                  if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
                      coerced_type = AMA_FLOAT;
@@ -452,15 +458,14 @@ expression : simple_expression { $$ = $1;}
                {
                  $$ = new_tree_1(AST_ARIM_INVERSAO, $2);
                  if ($2->semantic_type != AMA_INT && $2->semantic_type != AMA_FLOAT)
-                     report_error(IKS_ERROR_WRONG_TYPE);
+                     coerce($2, AMA_INT);
                  $$->semantic_type = $2->semantic_type;
                }
            | '!' simple_expression
                {
                  $$ = new_tree_1(AST_LOGICO_COMP_NEGACAO, $2);
-                 if ($2->semantic_type != AMA_BOOL)
-                     report_error(IKS_ERROR_WRONG_TYPE);
                  $$->semantic_type = AMA_BOOL;
+                 coerce($2, AMA_BOOL);
                }
            ;
 simple_expression : expression_leaf { $$ = $1;}
