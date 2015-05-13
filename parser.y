@@ -166,7 +166,14 @@ nonempty_params_list : param { $$ = new_param_list(); append_param_list_item($$,
 param                : TK_PR_CONST simple_var_decl { $$ = new_param_list_item(); $$->param_type = $2->type.base; }
                      | simple_var_decl { $$ = new_param_list_item(); $$->param_type = $1->type.base; } ;
 
-command_block   : '{' { sym_stack = push_new_dict(sym_stack); } command_list '}' { sym_stack = pop_stack(sym_stack); } { $$ = new_tree_0(AST_BLOCO); set_list_child_tree($$,0,$3); } //TODO: format this better
+command_block   : '{' { sym_stack = push_new_dict(sym_stack); }
+                    command_list '}'
+                    {
+                      sym_stack = pop_stack(sym_stack);
+                      
+                      $$ = new_tree_0(AST_BLOCO);
+                      set_list_child_tree($$,0,$3);
+                    }
                 ;
 
 command_list    : command { $$ = $1; }
@@ -229,7 +236,6 @@ static_local_var : TK_PR_STATIC simple_local_var { $$ = $2; }
 assignment : TK_IDENTIFICADOR '=' expression
                {
                  $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
-                 comp_dict_item_t* entry_cur_level = $1;
                  $1 = query_stack_var(sym_stack, $1->lex);
                  if ($1 != NULL)
                      coerce($3, $1->type.base);
@@ -237,7 +243,6 @@ assignment : TK_IDENTIFICADOR '=' expression
            | TK_IDENTIFICADOR '[' expression ']' '=' expression
                {
                  $$ = new_tree_2(AST_ATRIBUICAO,new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3), $6);
-                 comp_dict_item_t* entry_cur_level = $1;
                  $1 = query_stack_vector(sym_stack, $1->lex);
                  if ($1 != NULL)
                  {
@@ -464,7 +469,6 @@ simple_expression : expression_leaf { $$ = $1;}
 expression_leaf   : TK_IDENTIFICADOR
                       {
                         $$ = new_tree_valued(AST_IDENTIFICADOR, $1);
-                        comp_dict_item_t* entry_cur_level = $1;
                         $1 = query_stack_var(sym_stack, $1->lex);
                         if ($1 != NULL)
                             $$->semantic_type = $1->type.base;
@@ -472,7 +476,6 @@ expression_leaf   : TK_IDENTIFICADOR
                   | TK_IDENTIFICADOR '[' expression ']'
                       {
                         $$ = new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
-                        comp_dict_item_t* entry_cur_level = $1;
                         $1 = query_stack_vector(sym_stack, $1->lex);
                         if ($1 != NULL)
                             $$->semantic_type = $1->type.base;
@@ -510,10 +513,10 @@ if_else_no_then : TK_PR_IF '(' expression ')' TK_PR_THEN command_no_then TK_PR_E
 
 /** TIPOS AUXILIARES **/
 
-type  : TK_PR_INT { $$ = AMA_INT; }
-      | TK_PR_FLOAT { $$ = AMA_FLOAT; }
-      | TK_PR_BOOL { $$ = AMA_BOOL; }
-      | TK_PR_CHAR { $$ = AMA_CHAR; }
+type  : TK_PR_INT    { $$ = AMA_INT; }
+      | TK_PR_FLOAT  { $$ = AMA_FLOAT; }
+      | TK_PR_BOOL   { $$ = AMA_BOOL; }
+      | TK_PR_CHAR   { $$ = AMA_CHAR; }
       | TK_PR_STRING { $$ = AMA_STRING; };
 
 literal         : TK_LIT_FALSE  { $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_BOOL; }
