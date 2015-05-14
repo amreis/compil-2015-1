@@ -461,14 +461,34 @@ flow_control    : do_while    { $$ = $1;}
                 | if_then     { $$ = $1;}
                 | if_else     { $$ = $1;}
                 ;
-do_while        : TK_PR_DO command ';'   TK_PR_WHILE '(' expression ')' { $$ = new_tree_2(AST_DO_WHILE, $2, $6);}
-                | TK_PR_DO command_block TK_PR_WHILE '(' expression ')' { $$ = new_tree_2(AST_DO_WHILE, $2, $5);}
+do_while        : TK_PR_DO command ';'   TK_PR_WHILE '(' expression ')'
+                    {
+                      $$ = new_tree_2(AST_DO_WHILE, $2, $6);
+                      coerce($6, AMA_BOOL);
+                    }
+                | TK_PR_DO command_block TK_PR_WHILE '(' expression ')'
+                    {
+                      $$ = new_tree_2(AST_DO_WHILE, $2, $5);
+                      coerce($5, AMA_BOOL);
+                    }
                 ;
-while           : TK_PR_WHILE '(' expression ')' TK_PR_DO command { $$ = new_tree_2(AST_WHILE_DO, $3, $6);}
+while           : TK_PR_WHILE '(' expression ')' TK_PR_DO command
+                    {
+                      $$ = new_tree_2(AST_WHILE_DO, $3, $6);
+                      coerce($3, AMA_BOOL);
+                    }
                 ; 
-if_then         : TK_PR_IF '(' expression ')' TK_PR_THEN command { $$ = new_tree_2(AST_IF_ELSE, $3, $6);}
+if_then         : TK_PR_IF '(' expression ')' TK_PR_THEN command
+                    {
+                      $$ = new_tree_2(AST_IF_ELSE, $3, $6);
+                      coerce($3, AMA_BOOL);
+                    }
                 ;
-if_else         : TK_PR_IF '(' expression ')' TK_PR_THEN command TK_PR_ELSE command { $$ = new_tree_3(AST_IF_ELSE, $3, $6, $8);}
+if_else         : TK_PR_IF '(' expression ')' TK_PR_THEN command TK_PR_ELSE command
+                    {
+                      $$ = new_tree_3(AST_IF_ELSE, $3, $6, $8);
+                      coerce($3, AMA_BOOL);
+                    }
                 ;
 
 /** TIPOS AUXILIARES **/
