@@ -70,8 +70,11 @@ comp_dict_item_t* current_function = NULL;
 %left '*' '/'
 %left '!' INVERSION
 
+%nonassoc TK_PR_THEN
+%nonassoc TK_PR_ELSE
+
 %type<ast> literal expression_leaf expression simple_expression flow_control 
-%type<ast> do_while while if_then if_else command_no_then  while_no_then if_else_no_then command simple_command command_block command_list
+%type<ast> do_while while if_then if_else command simple_command command_block command_list
 %type<ast> return_statement assignment input_statement output_statement
 %type<ast> func_call args_list nonempty_args_list output_list program full_program gen_func_decl static_func_decl simple_func_decl
 
@@ -504,16 +507,7 @@ while           : TK_PR_WHILE '(' expression ')' TK_PR_DO command { $$ = new_tre
                 ; 
 if_then         : TK_PR_IF '(' expression ')' TK_PR_THEN command { $$ = new_tree_2(AST_IF_ELSE, $3, $6);}
                 ;
-if_else         : TK_PR_IF '(' expression ')' TK_PR_THEN command_no_then TK_PR_ELSE command { $$ = new_tree_3(AST_IF_ELSE, $3, $6, $8);}
-                ;
-command_no_then : do_while          { $$ = $1;}
-                | while_no_then     { $$ = $1;}
-                | if_else_no_then   { $$ = $1;}
-                | simple_command    { $$ = $1;}
-                ;
-while_no_then   : TK_PR_WHILE '(' expression ')' TK_PR_DO command_no_then { $$ = new_tree_2(AST_WHILE_DO, $3, $6);}
-                ;
-if_else_no_then : TK_PR_IF '(' expression ')' TK_PR_THEN command_no_then TK_PR_ELSE command_no_then { $$ = new_tree_3(AST_IF_ELSE, $3, $6, $8);}
+if_else         : TK_PR_IF '(' expression ')' TK_PR_THEN command TK_PR_ELSE command { $$ = new_tree_3(AST_IF_ELSE, $3, $6, $8);}
                 ;
 
 /** TIPOS AUXILIARES **/
