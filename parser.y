@@ -74,7 +74,7 @@ comp_dict_item_t* current_function = NULL;
 %nonassoc TK_PR_ELSE
 
 %type<ast> literal expression_leaf expression simple_expression flow_control 
-%type<ast> do_while while if_then if_else command simple_command command_block command_list
+%type<ast> do_while while if_then if_else command command_block command_list
 %type<ast> return_statement assignment input_statement output_statement
 %type<ast> func_call args_list nonempty_args_list output_list program full_program gen_func_decl static_func_decl simple_func_decl
 
@@ -184,11 +184,7 @@ command_list    : command { $$ = $1; }
                 ;
 
 command         : flow_control      { $$ = $1; }
-                | simple_command    { $$ = $1; }
-                | invalid_stmt      { $$ = NULL; }
-                ;
-
-simple_command  : local_var_decl    { $$ = NULL; }
+                | local_var_decl    { $$ = NULL; }
                 | assignment        { $$ = $1; }
                 | input_statement   { $$ = $1; }
                 | output_statement  { $$ = $1; }
@@ -196,6 +192,7 @@ simple_command  : local_var_decl    { $$ = NULL; }
                 | command_block     { $$ = $1; }
                 | /*empty*/         { $$ = NULL; }
                 | func_call         { $$ = $1; }
+                | invalid_stmt      { $$ = NULL; }
                 ;
 
 invalid_stmt    : gen_func_decl { yyerror("Illegal function declaration ending"); return SINTATICA_ERRO; }
@@ -334,40 +331,28 @@ expression : simple_expression { $$ = $1;}
            | expression '+' expression
                {
                  $$ = new_tree_2(AST_ARIM_SOMA, $1, $3);
-                 if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
-                     $$->semantic_type = AMA_FLOAT;
-                 else
-                     $$->semantic_type = AMA_INT;
+                 $$->semantic_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, $$->semantic_type);
                  coerce($3, $$->semantic_type);
                }
            | expression '-' expression
                {
                  $$ = new_tree_2(AST_ARIM_SUBTRACAO, $1, $3);
-                 if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
-                     $$->semantic_type = AMA_FLOAT;
-                 else
-                     $$->semantic_type = AMA_INT;
+                 $$->semantic_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, $$->semantic_type);
                  coerce($3, $$->semantic_type);
                }
            | expression '*' expression
                {
                  $$ = new_tree_2(AST_ARIM_MULTIPLICACAO, $1, $3);
-                 if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
-                     $$->semantic_type = AMA_FLOAT;
-                 else
-                     $$->semantic_type = AMA_INT;
+                 $$->semantic_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, $$->semantic_type);
                  coerce($3, $$->semantic_type);
                }
            | expression '/' expression
                {
-                  $$ = new_tree_2(AST_ARIM_DIVISAO, $1, $3);
-                  if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
-                     $$->semantic_type = AMA_FLOAT;
-                 else
-                     $$->semantic_type = AMA_INT;
+                 $$ = new_tree_2(AST_ARIM_DIVISAO, $1, $3);
+                 $$->semantic_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, $$->semantic_type);
                  coerce($3, $$->semantic_type);
                }
@@ -375,11 +360,7 @@ expression : simple_expression { $$ = $1;}
                {
                  $$ = new_tree_2(AST_LOGICO_COMP_L, $1, $3);
                  $$->semantic_type = AMA_BOOL;
-                 int coerced_type;
-                 if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
-                     coerced_type = AMA_FLOAT;
-                 else
-                     coerced_type = AMA_INT;
+                 int coerced_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, coerced_type);
                  coerce($3, coerced_type);
                }
@@ -387,11 +368,7 @@ expression : simple_expression { $$ = $1;}
                {
                  $$ = new_tree_2(AST_LOGICO_COMP_G, $1, $3);
                  $$->semantic_type = AMA_BOOL;
-                 int coerced_type;
-                 if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
-                     coerced_type = AMA_FLOAT;
-                 else
-                     coerced_type = AMA_INT;
+                 int coerced_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, coerced_type);
                  coerce($3, coerced_type);
                }
@@ -399,11 +376,7 @@ expression : simple_expression { $$ = $1;}
                {
                  $$ = new_tree_2(AST_LOGICO_COMP_LE, $1, $3);
                  $$->semantic_type = AMA_BOOL;
-                 int coerced_type;
-                 if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
-                     coerced_type = AMA_FLOAT;
-                 else
-                     coerced_type = AMA_INT;
+                 int coerced_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, coerced_type);
                  coerce($3, coerced_type);
                }
@@ -411,11 +384,7 @@ expression : simple_expression { $$ = $1;}
                {
                  $$ = new_tree_2(AST_LOGICO_COMP_GE, $1, $3);
                  $$->semantic_type = AMA_BOOL;
-                 int coerced_type;
-                 if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
-                     coerced_type = AMA_FLOAT;
-                 else
-                     coerced_type = AMA_INT;
+                 int coerced_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, coerced_type);
                  coerce($3, coerced_type);
                }
@@ -423,11 +392,7 @@ expression : simple_expression { $$ = $1;}
                {
                  $$ = new_tree_2(AST_LOGICO_COMP_IGUAL, $1, $3);
                  $$->semantic_type = AMA_BOOL;
-                 int coerced_type;
-                 if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
-                     coerced_type = AMA_FLOAT;
-                 else
-                     coerced_type = AMA_INT;
+                 int coerced_type = infer_type($1->semantic_type, $3->semantic_type);
                  coerce($1, coerced_type);
                  coerce($3, coerced_type);
                }
@@ -435,11 +400,7 @@ expression : simple_expression { $$ = $1;}
                {
                  $$ = new_tree_2(AST_LOGICO_COMP_DIF, $1, $3);
                  $$->semantic_type = AMA_BOOL;
-                 int coerced_type;
-                 if ($1->semantic_type == AMA_FLOAT || $3->semantic_type == AMA_FLOAT)
-                     coerced_type = AMA_FLOAT;
-                 else
-                     coerced_type = AMA_INT;
+                 int coerced_type = infer_type($1->semantic_type, $3->semantic_type);
                  coerce($1, coerced_type);
                  coerce($3, coerced_type);
                }

@@ -38,6 +38,8 @@ int getLineNumber (void);
 void yyerror (char const *mensagem);
 void report_error(int errcode, ...);
 
+int infer_type(int type1, int type2);
+int infer_numeric_type(int type1, int type2);
 void coerce(comp_tree_t *arg, int to_type);
 void try_to_coerce(comp_tree_t *arg, int to_type, int wrong_type_error, ...);
 void coerce_dict_entry(comp_dict_item_t *arg, int to_type);

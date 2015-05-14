@@ -87,6 +87,25 @@ void report_error(int errcode, ...)
 }
 
 
+int infer_type(int type1, int type2)
+{
+	if(type1 == AMA_FLOAT || type2 == AMA_FLOAT)
+		return AMA_FLOAT;
+	if(type1 == AMA_INT || type2 == AMA_INT)
+		return AMA_INT;
+	if(type1 == AMA_BOOL || type2 == AMA_BOOL)
+		return AMA_BOOL;
+	return type1;
+}
+
+int infer_numeric_type(int type1, int type2)
+{
+	if(type1 == AMA_FLOAT || type2 == AMA_FLOAT)
+		return AMA_FLOAT;
+	else
+		return AMA_INT;
+}
+
 void coerce(comp_tree_t *arg, int to_type)
 {
 	int from_type = arg->semantic_type;
