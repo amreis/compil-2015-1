@@ -82,6 +82,7 @@ comp_dict_item_t* current_function = NULL;
 %type<dim_list> dim_list
 %type<type> type
 %type<dict_entry> simple_var_decl vector_var_decl simple_local_var static_local_var gen_local_var init_literal
+%type<dict_entry> vector_local_var
 %type<param_list> params_list nonempty_params_list
 %type<param_list_item> param
 
@@ -234,7 +235,7 @@ local_var_decl : gen_local_var
                    {
                      coerce_dict_entry($3, $1->type.base);
                    }
-               ;
+               | vector_local_var ;
 
 gen_local_var    : simple_local_var { $$ = $1; } | static_local_var { $$ = $1; } ;
 
@@ -255,6 +256,13 @@ simple_local_var : type TK_IDENTIFICADOR
                  ;
 static_local_var : TK_PR_STATIC simple_local_var { $$ = $2; }
                  ;
+vector_local_var : simple_local_var '[' dim_list ']'
+                 {
+                    $1->type.is_vector = 1;
+                    $1->type.n_dims = $3->length;
+                    $1->type.dim_sizes = dim_list_to_ary($3);
+                    $$ = $1;
+                 } ;
 // ATRIBUIÇÃO
 assignment : TK_IDENTIFICADOR '=' expression
                {
