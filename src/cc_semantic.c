@@ -70,6 +70,23 @@ void report_error(int errcode, ...)
 	arg1 = va_arg(a_list, int);
 	sprintf(buffer, "Function %s call arg#%d has wrong type", arg0, arg1);
 	break;
+	case IKS_ERROR_MISSING_DIMS:
+	arg0 = va_arg(a_list, char*);
+	arg1 = va_arg(a_list, int);
+	arg2 = va_arg(a_list, int);
+	sprintf(buffer, "Array %s access with too few dimensions (needs %d, %d provided)", arg0, arg1, arg2);
+	break;
+	case IKS_ERROR_EXCESS_DIMS:
+	arg0 = va_arg(a_list, char*);
+	arg1 = va_arg(a_list, int);
+	arg2 = va_arg(a_list, int);
+	sprintf(buffer, "Array %s access with too many arguments (needs %d, %d provided)", arg0, arg1, arg2);
+	break;
+	case IKS_ERROR_WRONG_TYPE_DIMS:
+	arg0 = va_arg(a_list, char*);
+	arg1 = va_arg(a_list, int);
+	sprintf(buffer, "Array %s access dim#%d has wrong type", arg0, arg1);
+	break;
 	case IKS_ERROR_WRONG_PAR_INPUT:
 	sprintf(buffer, "Wrong input parameter");
 	break;

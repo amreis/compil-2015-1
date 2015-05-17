@@ -32,6 +32,10 @@
 #define IKS_ERROR_WRONG_PAR_OUTPUT 13 //parâmetro não é literal string ou expressão
 #define IKS_ERROR_WRONG_PAR_RETURN 14 //parâmetro não é expressão compatível com tipo do retorno
 
+#define IKS_ERROR_MISSING_DIMS 15
+#define IKS_ERROR_EXCESS_DIMS 16
+#define IKS_ERROR_WRONG_TYPE_DIMS 17
+
 int first_error;
 
 int getLineNumber (void);

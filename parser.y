@@ -12,6 +12,7 @@
 #include "cc_dict.h"
 #include "cc_stack.h"
 #include "cc_param_list.h"
+#include "cc_dim_list.h"
 #include "cc_semantic.h"
 #include <stdlib.h>
 #include <string.h>
@@ -31,6 +32,7 @@ comp_dict_item_t* current_function = NULL;
     struct _comp_dict_item_t* dict_entry;
     struct _comp_param_list_t* param_list;
     struct _comp_param_list_item_t* param_list_item;
+    struct _dim_list_t* dim_list;
 }
 
 /* Declaração dos tokens da linguagem */
@@ -77,11 +79,12 @@ comp_dict_item_t* current_function = NULL;
 %type<ast> do_while while if_then if_else command command_block command_list
 %type<ast> return_statement assignment input_statement output_statement
 %type<ast> func_call args_list nonempty_args_list output_list program full_program gen_func_decl static_func_decl simple_func_decl
-
+%type<dim_list> dim_list
 %type<type> type
 %type<dict_entry> simple_var_decl vector_var_decl simple_local_var static_local_var gen_local_var init_literal
 %type<param_list> params_list nonempty_params_list
 %type<param_list_item> param
+
 %error-verbose
 
 %%
@@ -112,7 +115,27 @@ static_var_decl : TK_PR_STATIC simple_var_decl
                 | TK_PR_STATIC vector_var_decl
                 ;
 /* A vector declaration has its identifier followed by [N], where N is the size. */
-vector_var_decl : simple_var_decl '[' TK_LIT_INT ']' { $1->type.is_vector = 1; $$ = $1; } ;
+vector_var_decl : simple_var_decl '[' dim_list ']'
+                {
+                    $1->type.is_vector = 1;
+                    $1->type.n_dims = $3->length;
+                    $1->type.dim_sizes = dim_list_to_ary($3);
+                    $$ = $1;
+                };
+
+dim_list        : TK_LIT_INT
+                {
+                    $$ = new_dim_list();
+                    dim_list_item_t* aux = new_dim_list_item();
+                    aux->dim_size = $1->token_val.int_val;
+                    append_dim($$, aux);
+                }
+                | dim_list ',' TK_LIT_INT
+                {
+                    dim_list_item_t* aux = new_dim_list_item();
+                    aux->dim_size = $3->token_val.int_val;
+                    append_dim($$, aux);
+                }
 
 /* A simple declaration needs only the type and the identifier. */
 simple_var_decl : type TK_IDENTIFICADOR
@@ -240,14 +263,35 @@ assignment : TK_IDENTIFICADOR '=' expression
                  if ($1 != NULL)
                      coerce($3, $1->type.base);
                }
-           | TK_IDENTIFICADOR '[' expression ']' '=' expression
+           | TK_IDENTIFICADOR '[' nonempty_args_list ']' '=' expression
                {
-                 $$ = new_tree_2(AST_ATRIBUICAO,new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3), $6);
+                 comp_tree_t* aux = new_tree_1(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1)); set_list_child_tree(aux, 1, $3);
+                 $$ = new_tree_2(AST_ATRIBUICAO, aux, $6);
                  $1 = query_stack_vector(sym_stack, $1->lex);
                  if ($1 != NULL)
                  {
                      // Check type of the expression between brackets.
-                     coerce($3, AMA_INT);
+                     int n = 0;
+                     comp_tree_t* args = aux->child[1];
+                     while (args != NULL)
+                     {
+                         n++;
+                         args = args->next;
+                     }
+                     if (n < $1->type.n_dims)
+                         report_error(IKS_ERROR_MISSING_DIMS, $1->lex, $1->type.n_dims, n);
+                     else if (n > $1->type.n_dims)
+                         report_error(IKS_ERROR_EXCESS_DIMS, $1->lex, $1->type.n_dims, n);
+                     else {
+                         args = aux->child[1];
+                         n = 0;
+                         while (args != NULL)
+                         {
+                             //try_to_coerce(args, AMA_INT, IKS_ERROR_WRONG_TYPE_DIMS, $1->lex, n);
+                             coerce(args, AMA_INT);
+                             args = args->next;
+                         }
+                     }
                      // Check type of the assignment expression
                      coerce($6, $1->type.base);
                  }
@@ -442,13 +486,37 @@ expression_leaf   : TK_IDENTIFICADOR
                         if ($1 != NULL)
                             $$->semantic_type = $1->type.base;
                       }
-                  | TK_IDENTIFICADOR '[' expression ']'
+                  | TK_IDENTIFICADOR '[' nonempty_args_list ']'
                       {
-                        $$ = new_tree_2(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
+                        $$ = new_tree_1(AST_VETOR_INDEXADO, new_tree_valued(AST_IDENTIFICADOR, $1));
+                        set_list_child_tree($$, 1, $3);
                         $1 = query_stack_vector(sym_stack, $1->lex);
                         if ($1 != NULL)
+                        {
                             $$->semantic_type = $1->type.base;
-                        coerce($3, AMA_INT);
+                            // Check type of the expression between brackets.
+                            int n = 0;
+                            comp_tree_t* args = $$->child[1];
+                            while (args != NULL)
+                            {
+                                n++;
+                                args = args->next;
+                            }
+                            if (n < $1->type.n_dims)
+                                report_error(IKS_ERROR_MISSING_DIMS, $1->lex, $1->type.n_dims, n);
+                            else if (n > $1->type.n_dims)
+                                report_error(IKS_ERROR_EXCESS_DIMS, $1->lex, $1->type.n_dims, n);
+                            else {
+                                args = $$->child[1];
+                                n = 0;
+                                while (args != NULL)
+                                {
+                                    //try_to_coerce(args, AMA_INT, IKS_ERROR_WRONG_TYPE_DIMS, $1->lex, n);
+                                    coerce(args, AMA_INT);
+                                    args = args->next;
+                                }
+                            }
+                        }
                       }
                   | literal { $$ = $1; }
                   | func_call { $$ = $1; }

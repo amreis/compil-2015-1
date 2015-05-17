@@ -36,6 +36,8 @@ typedef struct _comp_dict_item_t
     struct {
         int base;
         bool is_vector;
+        int n_dims;
+        int *dim_sizes;
         bool is_function;
         int n_args;
         int *arg_types;
