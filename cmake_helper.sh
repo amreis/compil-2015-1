@@ -4,7 +4,8 @@ if [ $# -ne 1 ]; then
 fi
 
 if [ ! -d "build" ]; then
-    echo script must be called from the compiler root folder
+    echo script must be called from the compiler root folder and the \"build\"\
+    directory must exist
     exit 0
 fi
 
