@@ -20,6 +20,7 @@ ADD_EXECUTABLE(main
   src/cc_param_list.c
   src/cc_semantic.c
   src/cc_dim_list.c
+  src/cc_codegen.c
 )
 TARGET_LINK_LIBRARIES(main ${FLEX_LIBRARIES})
 

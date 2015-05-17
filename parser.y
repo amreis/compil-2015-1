@@ -67,9 +67,9 @@ comp_dict_item_t* current_function = NULL;
 %token TOKEN_ERRO
 
 %left '&'
-%left '<' '>' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE TK_OC_OR
-%left '+' '-' TK_OC_AND
-%left '*' '/'
+%left '<' '>' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE
+%left '+' '-' TK_OC_OR
+%left '*' '/' TK_OC_AND
 %left '!' INVERSION
 
 %nonassoc TK_PR_THEN
@@ -386,6 +386,7 @@ expression : simple_expression { $$ = $1;}
                  $$->semantic_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, $$->semantic_type);
                  coerce($3, $$->semantic_type);
+                 gen_code($$);
                }
            | expression '-' expression
                {
@@ -575,12 +576,12 @@ type  : TK_PR_INT    { $$ = AMA_INT; }
       | TK_PR_CHAR   { $$ = AMA_CHAR; }
       | TK_PR_STRING { $$ = AMA_STRING; };
 
-literal         : TK_LIT_FALSE  { $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_BOOL; }
-                | TK_LIT_TRUE   { $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_BOOL; }
+literal         : TK_LIT_FALSE  { $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_BOOL; gen_code($$); }
+                | TK_LIT_TRUE   { $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_BOOL; gen_code($$); }
                 | TK_LIT_CHAR   { $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_CHAR; }
                 | TK_LIT_STRING { $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_STRING; }
-                | TK_LIT_INT    { $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_INT; }
-                | TK_LIT_FLOAT  { $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_FLOAT; }
+                | TK_LIT_INT    { $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_INT; gen_code($$); }
+                | TK_LIT_FLOAT  { $$ = new_tree_valued(AST_LITERAL, $1); $$->semantic_type = AMA_FLOAT; gen_code($$); }
                 ;
 init_literal    : TK_LIT_FALSE  { $$ = $1; }
                 | TK_LIT_TRUE   { $$ = $1; }

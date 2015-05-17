@@ -18,6 +18,8 @@ comp_tree_t* new_tree(int type)
 	resp->next_type = NEXT_INVALID;
 	resp->next = NULL;
 	resp->first = resp;
+	resp->code = NULL;
+	resp->reg_result = NULL;
 	return resp;
 }
 
@@ -87,6 +89,8 @@ void free_tree(comp_tree_t* t)
 			free_tree(t->child[i]);
 	if(t->next!=NULL)
 		free_tree(t->next);
+	free(t->code);
+	free(t->reg_result);
 	free(t);
 }
 

@@ -8,6 +8,7 @@
 #define NEXT_OUTPUT 4
 
 #include "cc_dict.h"
+#include "cc_list.h"
 
 typedef struct _comp_tree_t {
 	int type;
@@ -21,6 +22,9 @@ typedef struct _comp_tree_t {
 	int next_type;
 	struct _comp_tree_t* next;
 	struct _comp_tree_t* first;
+
+	comp_list_t* code;
+	char* reg_result;
 } comp_tree_t;
 
 comp_tree_t* new_tree(int type);
