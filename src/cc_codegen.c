@@ -51,7 +51,7 @@ comp_list_t* gen_arim_binaria(comp_tree_t* node)
         sprintf(instr, "sub %s, %s => %s", reg, reg_dir, reg);
         break;
         case AST_ARIM_MULTIPLICACAO:
-        sprintf(instr, "mul %s, %s => %s", reg, reg_dir, reg);
+        sprintf(instr, "mult %s, %s => %s", reg, reg_dir, reg);
         break;
         case AST_ARIM_DIVISAO:
         sprintf(instr, "div %s, %s => %s", reg, reg_dir, reg);
@@ -99,7 +99,15 @@ comp_list_t* gen_identificador(comp_tree_t* node)
     return list;
 }
 
-
+void print_code(comp_list_t* code)
+{
+    comp_list_item_t* s = code->start;
+    while (s != NULL)
+    {
+        printf("%s\n", s->instr);
+        s = s->next;
+    }
+}
 
 comp_list_t* gen_code(comp_tree_t* node)
 {
@@ -130,6 +138,15 @@ comp_list_t* gen_code(comp_tree_t* node)
             return gen_identificador(node);
         case AST_ATRIBUICAO:
             return gen_atribuicao(node);
+        case AST_PROGRAMA:
+            // node->code = node->next->code;
+            // node->reg_result = strdup(node->next->reg_result);
+            return node->code;
+        case AST_FUNCAO:
+            node->code = node->child[0]->code;
+            // print_code(node->code);
+            // node->reg_result = strdup(node->child[0]->reg_result);
+            return node->code;
         default:
             return NULL;
     }

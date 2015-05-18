@@ -40,7 +40,9 @@ comp_dict_item_t* query_stack(comp_stack_t* stack, const char* s, int sym_type)
 		if (item != NULL)
 			item->type.sealed = 1;
         if (item != NULL && item->type.base != AMA_INVALID)
+        {
             return item;
+        }
         else stack = stack->next;
     }
     return NULL;

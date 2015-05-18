@@ -90,9 +90,9 @@ void free_tree(comp_tree_t* t)
 	if(t->next!=NULL)
 		free_tree(t->next);
 	if (t->code != NULL)
-    	free(t->code);
+        free(t->code);
 	if (t->reg_result != NULL)
-    	free(t->reg_result);
+        free(t->reg_result);
 	free(t);
 }
 

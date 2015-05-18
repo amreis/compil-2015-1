@@ -10,5 +10,5 @@
 #include "cc_dict.h"
 
 comp_list_t* gen_code(comp_tree_t* node);
-
+void print_code(comp_list_t* code);
 #endif

@@ -98,7 +98,8 @@ full_program: program
                 {
                   $$ = new_tree_0(AST_PROGRAMA);
                   set_list_child_tree($$,0,$1);
-                  final_ast = $$;
+                  gen_code($$->child[0]);
+                  print_code($$->child[0]->code);
                   return first_error;
                 } ;
 
@@ -157,7 +158,7 @@ simple_var_decl : type TK_IDENTIFICADOR
 /** FUNCTIONS */
 /* A function can be static or not. */
 gen_func_decl : static_func_decl { $$ = $1; }
-              | simple_func_decl { $$ = $1; }
+              | simple_func_decl { $$ = $1; gen_code($$); }
               ;
 
 /* If it's static, its declaration is preceded by the keyword 'static' */
@@ -211,7 +212,13 @@ command_block   : '{' { sym_stack = push_new_dict(sym_stack); }
                 ;
 
 command_list    : command { $$ = $1; }
-                | command_list ';' command { $$ = append_next_tree($1, NEXT_COMMAND, $3); }
+                | command_list ';' command { $$ = append_next_tree($1, NEXT_COMMAND, $3);
+                    if ($3 != NULL)
+                    {
+                        concat_list($1->code, $3->code);
+                    }
+
+                    }
                 ;
 
 command         : flow_control      { $$ = $1; }
@@ -273,14 +280,17 @@ vector_local_var : simple_local_var '[' dim_list ']'
 // ATRIBUIÇÃO
 assignment : TK_IDENTIFICADOR '=' expression
                {
-                 $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
+                 comp_dict_item_t* old_s1 = $1;
+
                  $1 = query_stack_var(sym_stack, $1->lex);
                  if ($1 != NULL)
                  {
-                     coerce($3, $1->type.base);
-                     free_tree($$);
                      $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
+                     coerce($3, $1->type.base);
+                     $$->child[1]->value = $1;
                      gen_code($$);
+                 } else {
+                     $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
                  }
                }
            | TK_IDENTIFICADOR '[' nonempty_args_list ']' '=' expression
@@ -505,15 +515,14 @@ simple_expression : expression_leaf { $$ = $1;}
                   ;
 expression_leaf   : TK_IDENTIFICADOR
                       {
-                        $$ = new_tree_valued(AST_IDENTIFICADOR, $1);
+                        comp_dict_item_t* old_s1 = $1;
                         $1 = query_stack_var(sym_stack, $1->lex);
                         if ($1 != NULL)
                         {
-                            $$->semantic_type = $1->type.base;
-                            free_tree($$);
                             $$ = new_tree_valued(AST_IDENTIFICADOR, $1);
+                            $$->semantic_type = $1->type.base;
                             gen_code($$);
-                        }
+                        } else $$ = new_tree_valued(AST_IDENTIFICADOR, old_s1);
                       }
                   | TK_IDENTIFICADOR '[' nonempty_args_list ']'
                       {
