@@ -23,6 +23,8 @@ extern comp_stack_t* sym_stack;
 // Since we don't allow functions to be declared inside functions, a single
 // pointer does the trick, so that we know which function we are in.
 comp_dict_item_t* current_function = NULL;
+
+int current_offset = 0;
 %}
 
 %union {
@@ -109,6 +111,11 @@ program : program global_var_decl ';' { $$ = $1; }
 /* A global var declaration may be static, or a vector. Or just a simple one. */
 global_var_decl : static_var_decl
                 | simple_var_decl
+                {
+                    $1->addr.offset = current_offset;
+                    $1->addr.scope = SCOPE_GLOBAL;
+                    current_offset+=size_of($1->type.base);
+                }
                 | vector_var_decl
                 ;
 /* A static variable is declared with the keyword 'static' in front of it. */
@@ -269,7 +276,12 @@ assignment : TK_IDENTIFICADOR '=' expression
                  $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
                  $1 = query_stack_var(sym_stack, $1->lex);
                  if ($1 != NULL)
+                 {
                      coerce($3, $1->type.base);
+                     free($$);
+                     $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
+                     gen_code($$);
+                 }
                }
            | TK_IDENTIFICADOR '[' nonempty_args_list ']' '=' expression
                {
@@ -394,6 +406,7 @@ expression : simple_expression { $$ = $1;}
                  $$->semantic_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, $$->semantic_type);
                  coerce($3, $$->semantic_type);
+                 gen_code($$);
                }
            | expression '*' expression
                {
@@ -401,6 +414,7 @@ expression : simple_expression { $$ = $1;}
                  $$->semantic_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, $$->semantic_type);
                  coerce($3, $$->semantic_type);
+                 gen_code($$);
                }
            | expression '/' expression
                {
@@ -408,6 +422,7 @@ expression : simple_expression { $$ = $1;}
                  $$->semantic_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, $$->semantic_type);
                  coerce($3, $$->semantic_type);
+                 gen_code($$);
                }
            | expression '<' expression
                {
@@ -493,7 +508,12 @@ expression_leaf   : TK_IDENTIFICADOR
                         $$ = new_tree_valued(AST_IDENTIFICADOR, $1);
                         $1 = query_stack_var(sym_stack, $1->lex);
                         if ($1 != NULL)
+                        {
                             $$->semantic_type = $1->type.base;
+                            free_tree($$);
+                            $$ = new_tree_valued(AST_IDENTIFICADOR, $1);
+                            gen_code($$);
+                        }
                       }
                   | TK_IDENTIFICADOR '[' nonempty_args_list ']'
                       {

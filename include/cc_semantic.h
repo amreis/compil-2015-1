@@ -52,4 +52,6 @@ comp_dict_item_t* query_stack_var(comp_stack_t* stack, const char* key);
 comp_dict_item_t* query_stack_vector(comp_stack_t* stack, const char* key);
 comp_dict_item_t* query_stack_function(comp_stack_t* stack, const char* key);
 
+int size_of(int type);
+
 #endif

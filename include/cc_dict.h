@@ -15,6 +15,8 @@
 #define AMA_STRING 4
 #define AMA_BOOL 5
 
+typedef enum { SCOPE_INVALID, SCOPE_GLOBAL, SCOPE_LOCAL } SCOPE;
+
 typedef char bool;
 
 #define SIMBOLO_INVALIDO   	0
@@ -43,6 +45,10 @@ typedef struct _comp_dict_item_t
         int *arg_types;
         char sealed;
     } type;
+	struct {
+		SCOPE scope;
+		int offset;
+	} addr;
 } comp_dict_item_t;
 
 #define TRIE_CHILDREN_SZ 256

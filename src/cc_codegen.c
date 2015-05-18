@@ -27,7 +27,7 @@ comp_list_t* gen_literal(comp_tree_t* node)
     {
         return NULL;
     }
-    fprintf(stderr, "gen: %s\n", instr);
+    fprintf(stderr, "%s\n", instr);
     comp_list_item_t* i = new_list_item_valued(instr);
     list = append_instr(list, i);
     node->code = list;
@@ -38,19 +38,69 @@ comp_list_t* gen_literal(comp_tree_t* node)
 comp_list_t* gen_arim_binaria(comp_tree_t* node)
 {
     char reg[20], instr[100];
+    if (node->child[0] == NULL || node->child[1] == NULL)
+        return NULL;
     strcpy(reg, node->child[0]->reg_result);
-    if (node->type == AST_ARIM_SOMA)
+    char *reg_dir = node->child[1]->reg_result;
+    switch (node->type)
     {
-        sprintf(instr, "add %s, %s => %s", reg, node->child[1]->reg_result, reg);
+        case AST_ARIM_SOMA:
+        sprintf(instr, "add %s, %s => %s", reg, reg_dir, reg);
+        break;
+        case AST_ARIM_SUBTRACAO:
+        sprintf(instr, "sub %s, %s => %s", reg, reg_dir, reg);
+        break;
+        case AST_ARIM_MULTIPLICACAO:
+        sprintf(instr, "mul %s, %s => %s", reg, reg_dir, reg);
+        break;
+        case AST_ARIM_DIVISAO:
+        sprintf(instr, "div %s, %s => %s", reg, reg_dir, reg);
     }
     concat_list(node->child[0]->code, node->child[1]->code);
     comp_list_item_t* i = new_list_item_valued(instr);
     node->code = node->child[0]->code;
     append_instr(node->code, i);
     node->reg_result = strdup(reg);
-    fprintf(stderr, "gen: %s", instr);
+    fprintf(stderr, "%s\n", instr);
     return node->code;
 }
+
+comp_list_t* gen_atribuicao(comp_tree_t* node)
+{
+    if (node->child[0] == NULL || node->child[1] == NULL)
+        return NULL;
+    char instr[100];
+    if (node->child[0]->value->addr.scope == SCOPE_GLOBAL)
+        sprintf(instr, "storeAI %s => rbss, %d", node->child[1]->reg_result, node->child[0]->value->addr.offset);
+    else {
+        // TODO IMPLEMENT
+    }
+    append_instr(node->child[1]->code, new_list_item_valued(instr));
+    node->code = node->child[1]->code;
+    node->reg_result = NULL;
+    fprintf(stderr, "%s\n", instr);
+    return node->code;
+}
+comp_list_t* gen_identificador(comp_tree_t* node)
+{
+    char reg[20], instr[100];
+    gera_reg(reg);
+    if (node->value->addr.scope == SCOPE_GLOBAL)
+    {
+        sprintf(instr, "loadAI rbss, %d => %s", node->value->addr.offset, reg);
+    } else {
+        // TODO IMPLEMENT
+    }
+    fprintf(stderr, "%s\n", instr);
+    comp_list_t* list = new_list();
+    list = append_instr(list, new_list_item_valued(instr));
+    node->code = list;
+    node->reg_result = strdup(reg);
+    return list;
+}
+
+
+
 comp_list_t* gen_code(comp_tree_t* node)
 {
     switch(node->type)
@@ -76,6 +126,10 @@ comp_list_t* gen_code(comp_tree_t* node)
             //return gen_logic_binaria(node);
         case AST_LOGICO_COMP_NEGACAO:
             //return gen_logic_unaria(node);
+        case AST_IDENTIFICADOR:
+            return gen_identificador(node);
+        case AST_ATRIBUICAO:
+            return gen_atribuicao(node);
         default:
             return NULL;
     }

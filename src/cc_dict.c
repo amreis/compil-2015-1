@@ -68,6 +68,8 @@ comp_dict_item_t* query_dict(comp_dict_t* t, const char* s)
         t->val->type.n_args = -1;
         t->val->type.arg_types = NULL;
         t->val->type.sealed = 0;
+		t->val->addr.scope = SCOPE_INVALID;
+		t->val->addr.offset = -1;
 	}
 	return t->val;
 }

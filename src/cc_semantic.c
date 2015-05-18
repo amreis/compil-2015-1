@@ -213,3 +213,19 @@ comp_dict_item_t* query_stack_function(comp_stack_t* stack, const char* key)
 	else return ret;
 	return NULL;
 }
+
+int size_of(int type)
+{
+    switch(type)
+    {
+        case AMA_CHAR:
+        case AMA_BOOL:
+            return 1;
+        case AMA_FLOAT:
+            return 8;
+        case AMA_INT:
+            return 4;
+        default:
+            return -1;
+    }
+}
