@@ -278,7 +278,7 @@ assignment : TK_IDENTIFICADOR '=' expression
                  if ($1 != NULL)
                  {
                      coerce($3, $1->type.base);
-                     free($$);
+                     free_tree($$);
                      $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
                      gen_code($$);
                  }
