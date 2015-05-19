@@ -12,7 +12,6 @@ comp_list_t* gen_literal(comp_tree_t* node)
 {
     char reg[20], instr[100];
     gera_reg(reg);
-    comp_list_t* list = new_list();
 
     if (node->value->token_type == SIMBOLO_LITERAL_INT ||
         node->value->token_type == SIMBOLO_LITERAL_FLOAT)
@@ -27,9 +26,11 @@ comp_list_t* gen_literal(comp_tree_t* node)
     {
         return NULL;
     }
-    fprintf(stderr, "%s\n", instr);
+
+    comp_list_t* list = new_list();
+    //fprintf(stderr, "%s\n", instr);
     comp_list_item_t* i = new_list_item_valued(instr);
-    list = append_instr(list, i);
+    append_instr(list, i);
     node->code = list;
     node->reg_result = strdup(reg);
     return list;
@@ -56,12 +57,11 @@ comp_list_t* gen_arim_binaria(comp_tree_t* node)
         case AST_ARIM_DIVISAO:
         sprintf(instr, "div %s, %s => %s", reg, reg_dir, reg);
     }
-    concat_list(node->child[0]->code, node->child[1]->code);
+    node->code = concat_list(node->child[0]->code, node->child[1]->code);
     comp_list_item_t* i = new_list_item_valued(instr);
-    node->code = node->child[0]->code;
     append_instr(node->code, i);
     node->reg_result = strdup(reg);
-    fprintf(stderr, "%s\n", instr);
+    //fprintf(stderr, "%s\n", instr);
     return node->code;
 }
 
@@ -75,12 +75,14 @@ comp_list_t* gen_atribuicao(comp_tree_t* node)
     else {
         // TODO IMPLEMENT
     }
-    append_instr(node->child[1]->code, new_list_item_valued(instr));
+    free_list(node->child[0]->code);
     node->code = node->child[1]->code;
+    append_instr(node->code, new_list_item_valued(instr));
     node->reg_result = NULL;
-    fprintf(stderr, "%s\n", instr);
+    //fprintf(stderr, "%s\n", instr);
     return node->code;
 }
+
 comp_list_t* gen_identificador(comp_tree_t* node)
 {
     char reg[20], instr[100];
@@ -91,9 +93,9 @@ comp_list_t* gen_identificador(comp_tree_t* node)
     } else {
         // TODO IMPLEMENT
     }
-    fprintf(stderr, "%s\n", instr);
+    //fprintf(stderr, "%s\n", instr);
     comp_list_t* list = new_list();
-    list = append_instr(list, new_list_item_valued(instr));
+    append_instr(list, new_list_item_valued(instr));
     node->code = list;
     node->reg_result = strdup(reg);
     return list;
@@ -139,7 +141,7 @@ comp_list_t* gen_code(comp_tree_t* node)
         case AST_ATRIBUICAO:
             return gen_atribuicao(node);
         case AST_PROGRAMA:
-            // node->code = node->next->code;
+            node->code = node->next->code;
             // node->reg_result = strdup(node->next->reg_result);
             return node->code;
         case AST_FUNCAO:

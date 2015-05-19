@@ -16,7 +16,11 @@ void main_init (int argc, char **argv)
 void main_finalize (void)
 {
     if (final_ast != NULL)
+    {
+        if(final_ast->code != NULL)
+            free_list(final_ast->code);
         free_tree(final_ast);
+    }
     if (sym_stack != NULL)
         free_stack(sym_stack);
 }

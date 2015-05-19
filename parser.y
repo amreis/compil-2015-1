@@ -99,7 +99,9 @@ full_program: program
                   $$ = new_tree_0(AST_PROGRAMA);
                   set_list_child_tree($$,0,$1);
                   gen_code($$->child[0]);
-                  print_code($$->child[0]->code);
+                  $$->code = $$->child[0]->code;
+                  print_code($$->code);
+                  final_ast = $$;
                   return first_error;
                 } ;
 
@@ -145,6 +147,7 @@ dim_list        : TK_LIT_INT
                     aux->dim_size = $3->token_val.int_val;
                     append_dim($$, aux);
                 }
+                ;
 
 /* A simple declaration needs only the type and the identifier. */
 simple_var_decl : type TK_IDENTIFICADOR
@@ -212,12 +215,11 @@ command_block   : '{' { sym_stack = push_new_dict(sym_stack); }
                 ;
 
 command_list    : command { $$ = $1; }
-                | command_list ';' command { $$ = append_next_tree($1, NEXT_COMMAND, $3);
-                    if ($3 != NULL)
+                | command_list ';' command
                     {
-                        concat_list($1->code, $3->code);
-                    }
-
+                      $$ = append_next_tree($1, NEXT_COMMAND, $3);
+                      if($3 != NULL)
+                          $$->code = concat_list($1->code, $3->code);
                     }
                 ;
 
@@ -280,17 +282,12 @@ vector_local_var : simple_local_var '[' dim_list ']'
 // ATRIBUIÇÃO
 assignment : TK_IDENTIFICADOR '=' expression
                {
-                 comp_dict_item_t* old_s1 = $1;
-
                  $1 = query_stack_var(sym_stack, $1->lex);
                  if ($1 != NULL)
                  {
                      $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
                      coerce($3, $1->type.base);
-                     $$->child[1]->value = $1;
                      gen_code($$);
-                 } else {
-                     $$ = new_tree_2(AST_ATRIBUICAO, new_tree_valued(AST_IDENTIFICADOR, $1), $3);
                  }
                }
            | TK_IDENTIFICADOR '[' nonempty_args_list ']' '=' expression

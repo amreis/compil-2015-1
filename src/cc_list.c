@@ -7,9 +7,9 @@ comp_list_t* new_list()
     return l;
 }
 
-comp_list_t* append_instr(comp_list_t* l, comp_list_item_t* item)
+void append_instr(comp_list_t* l, comp_list_item_t* item)
 {
-    if (l == NULL) return NULL;
+    if (l == NULL) return;
     if (l->start == NULL)
     {
         l->start = l->end = item;
@@ -19,7 +19,7 @@ comp_list_t* append_instr(comp_list_t* l, comp_list_item_t* item)
         l->end->next = item;
         l->end = item;
     }
-    return l;
+    return;
 }
 
 comp_list_t* concat_list(comp_list_t* head, comp_list_t* tail)
@@ -28,8 +28,20 @@ comp_list_t* concat_list(comp_list_t* head, comp_list_t* tail)
         return tail;
     if (tail == NULL)
         return head;
+    if (head->start == NULL)
+    {
+        free(head);
+        return tail;
+    }
+    if (tail->start == NULL)
+    {
+        free(tail);
+        return head;
+    }
     head->end->next = tail->start;
     head->end = tail->end;
+    free(tail);
+    return head;
 }
 
 comp_list_item_t* new_list_item()

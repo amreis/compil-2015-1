@@ -16,8 +16,8 @@ typedef struct _comp_list_t {
 
 comp_list_t* new_list();
 
-comp_list_t* append_instr(comp_list_t* l, comp_list_item_t* i);
-comp_list_t* concat_list(comp_list_t* head, comp_list_t* tail);
+void append_instr(comp_list_t* l, comp_list_item_t* i);
+comp_list_t* concat_list(comp_list_t* head, comp_list_t* tail); //head and tail become invalid
 
 comp_list_item_t* new_list_item();
 comp_list_item_t* new_list_item_valued(const char* instr);
