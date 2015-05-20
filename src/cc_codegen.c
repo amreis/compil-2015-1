@@ -65,6 +65,42 @@ comp_list_t* gen_arim_binaria(comp_tree_t* node)
     return node->code;
 }
 
+comp_list_t* gen_logic_comp(comp_tree_t* node)
+{
+    char reg[20], instr[100];
+    if (node->child[0] == NULL || node->child[1] == NULL)
+        return NULL;
+    strcpy(reg, node->child[0]->reg_result);
+    char *reg_dir = node->child[1]->reg_result;
+    switch (node->type)
+    {
+        case AST_LOGICO_COMP_DIF:
+        sprintf (instr, "cmp_NE %s, %s => %s", reg, reg_dir, reg);
+        break;
+        case AST_LOGICO_COMP_IGUAL:
+        sprintf (instr, "cmp_EQ %s, %s => %s", reg, reg_dir, reg);
+        break;
+        case AST_LOGICO_COMP_LE:
+        sprintf (instr, "cmp_LE %s, %s => %s", reg, reg_dir, reg);
+        break;
+        case AST_LOGICO_COMP_GE:
+        sprintf (instr, "cmp_GE %s, %s => %s", reg, reg_dir, reg);
+        break;
+        case AST_LOGICO_COMP_L:
+        sprintf (instr, "cmp_LT %s, %s => %s", reg, reg_dir, reg);
+        break;
+        case AST_LOGICO_COMP_G:
+        sprintf (instr, "cmp_GT %s, %s => %s", reg, reg_dir, reg);
+        break;
+    }
+    node->code = concat_list(node->child[0]->code, node->child[1]->code);
+    comp_list_item_t* i = new_list_item_valued(instr);
+    append_instr(node->code, i);
+    node->reg_result = strdup(reg);
+    //fprintf(stderr, "%s\n", instr);
+    return node->code;
+}
+
 comp_list_t* gen_atribuicao(comp_tree_t* node)
 {
     if (node->child[0] == NULL || node->child[1] == NULL)
@@ -130,7 +166,7 @@ comp_list_t* gen_code(comp_tree_t* node)
         case AST_LOGICO_COMP_GE:
         case AST_LOGICO_COMP_L:
         case AST_LOGICO_COMP_G:
-            //return gen_logic_comp(node);
+            return gen_logic_comp(node);
         case AST_LOGICO_E:
         case AST_LOGICO_OU:
             //return gen_logic_binaria(node);

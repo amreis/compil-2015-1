@@ -438,6 +438,7 @@ expression : simple_expression { $$ = $1;}
                  int coerced_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, coerced_type);
                  coerce($3, coerced_type);
+                 gen_code($$);
                }
            | expression '>' expression
                {
@@ -446,6 +447,7 @@ expression : simple_expression { $$ = $1;}
                  int coerced_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, coerced_type);
                  coerce($3, coerced_type);
+                 gen_code($$);
                }
            | expression TK_OC_LE expression
                {
@@ -454,6 +456,7 @@ expression : simple_expression { $$ = $1;}
                  int coerced_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, coerced_type);
                  coerce($3, coerced_type);
+                 gen_code($$);
                }
            | expression TK_OC_GE expression
                {
@@ -462,6 +465,7 @@ expression : simple_expression { $$ = $1;}
                  int coerced_type = infer_numeric_type($1->semantic_type, $3->semantic_type);
                  coerce($1, coerced_type);
                  coerce($3, coerced_type);
+                 gen_code($$);
                }
            | expression TK_OC_EQ expression
                {
@@ -470,6 +474,7 @@ expression : simple_expression { $$ = $1;}
                  int coerced_type = infer_type($1->semantic_type, $3->semantic_type);
                  coerce($1, coerced_type);
                  coerce($3, coerced_type);
+                 gen_code($$);
                }
            | expression TK_OC_NE expression
                {
@@ -478,6 +483,7 @@ expression : simple_expression { $$ = $1;}
                  int coerced_type = infer_type($1->semantic_type, $3->semantic_type);
                  coerce($1, coerced_type);
                  coerce($3, coerced_type);
+                 gen_code($$);
                }
            | expression TK_OC_AND expression
                {
