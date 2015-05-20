@@ -491,6 +491,7 @@ expression : simple_expression { $$ = $1;}
                  $$->semantic_type = AMA_BOOL;
                  coerce($1, AMA_BOOL);
                  coerce($3, AMA_BOOL);
+                 gen_code($$);
                }
            | expression TK_OC_OR expression
                {
@@ -498,6 +499,7 @@ expression : simple_expression { $$ = $1;}
                  $$->semantic_type = AMA_BOOL;
                  coerce($1, AMA_BOOL);
                  coerce($3, AMA_BOOL);
+                 gen_code($$);
                }
            | '-' simple_expression %prec INVERSION
                {

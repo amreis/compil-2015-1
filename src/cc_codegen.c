@@ -8,6 +8,14 @@ void gera_reg(char* out)
     return;
 }
 
+unsigned int next_rot = 0;
+
+void gera_rot(char* out)
+{
+    sprintf(out, "l%d", next_reg++);
+    return;
+}
+
 comp_list_t* gen_literal(comp_tree_t* node)
 {
     char reg[20], instr[100];
@@ -101,6 +109,33 @@ comp_list_t* gen_logic_comp(comp_tree_t* node)
     return node->code;
 }
 
+comp_list_t* gen_logic_binaria(comp_tree_t* node)
+{
+    char reg[20], instr[100], rotcalc[20], rotshort[20];
+    if (node->child[0] == NULL || node->child[1] == NULL)
+        return NULL;
+    strcpy(reg, node->child[0]->reg_result);
+    char *reg_dir = node->child[1]->reg_result;
+    gera_rot(rotcalc); gera_rot(rotshort);
+
+    node->code = node->child[0]->code;
+    if(node->type == AST_LOGICO_E)
+        sprintf (instr, "cbr %s => %s, %s", reg, rotcalc, rotshort);
+    else if(node->type == AST_LOGICO_OU)
+        sprintf (instr, "cbr %s => %s, %s", reg, rotshort, rotcalc);
+    append_instr(node->code, new_list_item_valued(instr));
+    sprintf (instr, "%s:", rotcalc);
+    append_instr(node->code, new_list_item_valued(instr));
+    node->code = concat_list(node->code, node->child[1]->code);
+    sprintf (instr, "i2i %s => %s", reg_dir, reg);
+    append_instr(node->code, new_list_item_valued(instr));
+    sprintf (instr, "%s:", rotshort);
+    append_instr(node->code, new_list_item_valued(instr));
+
+    node->reg_result = strdup(reg);
+    return node->code;
+}
+
 comp_list_t* gen_atribuicao(comp_tree_t* node)
 {
     if (node->child[0] == NULL || node->child[1] == NULL)
@@ -169,7 +204,7 @@ comp_list_t* gen_code(comp_tree_t* node)
             return gen_logic_comp(node);
         case AST_LOGICO_E:
         case AST_LOGICO_OU:
-            //return gen_logic_binaria(node);
+            return gen_logic_binaria(node);
         case AST_LOGICO_COMP_NEGACAO:
             //return gen_logic_unaria(node);
         case AST_IDENTIFICADOR:
